@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Storyline Visualization</title>
+<link rel="stylesheet" href="storyline.css">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+</head>
+<body>
+  <header id="toolbar">
+    <div class="toolbar-row">
+      <label class="ctl">
+        <span>Road</span>
+        <input id="roadSearch" type="text" placeholder="Type to filter... (All roads)" autocomplete="off">
+        <div id="roadDropdown" class="dropdown hidden"></div>
+      </label>
+
+      <label class="ctl">
+        <span>Color mode</span>
+        <select id="colorMode">
+          <option value="condition" selected>Condition (RdYlGn)</option>
+          <option value="cohort">Cohort hue</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="toolbar-row sliders">
+      <label class="ctl slider">
+        <span>Row height <output id="rowPxOut">4</output>px</span>
+        <input id="rowPx" type="range" min="1" max="16" step="1" value="4">
+      </label>
+      <label class="ctl slider">
+        <span>Lane gap <output id="laneGapOut">48</output>px</span>
+        <input id="laneGap" type="range" min="0" max="160" step="2" value="48">
+      </label>
+      <label class="ctl slider">
+        <span>Road gap <output id="roadGapOut">28</output>px</span>
+        <input id="roadGap" type="range" min="0" max="120" step="2" value="28">
+      </label>
+      <label class="ctl slider">
+        <span>Column width <output id="colWOut">62</output>px</span>
+        <input id="colW" type="range" min="20" max="160" step="2" value="62">
+      </label>
+    </div>
+    <div id="status" class="status">Loading storyline_data.json...</div>
+  </header>
+
+  <div id="scrollArea">
+    <div id="axis"><div id="axisInner"></div></div>
+    <!-- canvasWrap is the real (overflow:auto) scroll container. canvasSpacer
+         is an invisible block sized to the FULL layout extent so the browser
+         draws normal scrollbars; the canvas itself is kept at a fixed,
+         viewport-sized backing-store dimension (browsers silently blank
+         canvases taller than ~32767px) and is repositioned/redrawn on
+         scroll to show the slice of content currently in view. -->
+    <div id="canvasWrap">
+      <div id="canvasSpacer"></div>
+      <canvas id="storylineGLCanvas"></canvas>
+      <canvas id="storylineCanvas"></canvas>
+    </div>
+  </div>
+
+  <div id="tooltip" class="hidden"></div>
+
+  <script src="storyline.js"></script>
+  <script src="evolens.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "W": 5,
+  "NORM": "zscore",
+  "n_windows": 25,
+  "n_section_window_trajectories": 245152,
+  "n_flat_trajectories": 66305,
+  "first_window": {
+    "start": 1996,
+    "end": 2000,
+    "n_sections": 4720
+  }
+}

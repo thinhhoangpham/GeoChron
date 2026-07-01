@@ -1,0 +1,96 @@
+/* ---------- Two-pane layout below toolbar ---------- */
+#clustersLayout {
+  display: flex;
+  align-items: stretch;
+  height: calc(100vh - 76px); /* approx toolbar height; toolbar is not fixed-height but this keeps panes filling viewport */
+}
+
+#clusterSidebar {
+  width: 280px;
+  flex: 0 0 280px;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+  background: #fff;
+  padding: 8px;
+}
+
+#thumbnailGrid {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: 12px;
+  align-content: start;
+  background: #fafafa;
+}
+
+/* ---------- Cluster list items (reuses .dropdown-item hover/active look) ---------- */
+.cluster-item {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+}
+
+.cluster-item:hover,
+.cluster-item.active {
+  background: #eef4ff;
+  border-color: #ccc;
+}
+
+.cluster-item .cluster-id {
+  font-weight: 600;
+}
+
+.cluster-item .cluster-count {
+  color: #888;
+  font-size: 11px;
+}
+
+/* ---------- Thumbnail cards ---------- */
+.thumb-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thumb-title {
+  font-size: 11px;
+  color: #444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thumb-card svg {
+  width: 100%;
+  height: 320px;
+  display: block;
+  shape-rendering: crispEdges;
+}
+
+/* ---------- Cell tooltip (floating, follows cursor) ---------- */
+.cell-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+}
+
+.cell-tooltip.hidden {
+  display: none;
+}

@@ -1,0 +1,451 @@
+/* ============================================================================
+ * EvoLens drill-down
+ *
+ * Adds the GeoChron paper's brush-to-drill-down interaction on top of the
+ * existing Storyline (storyline.js). Does NOT touch layout/rendering
+ * internals there; it only reads a small surface exposed on
+ * window.__storyline (state, colX/colPitch, pointsCache, redraw) and reads
+ * from window.__storyline.state.data for windows/roads metadata.
+ *
+ * Flow:
+ *  1. User drags a rectangle on the Storyline canvas (mousedown/move/up).
+ *  2. On mouseup (if the drag exceeds a small threshold), the brushed pixel
+ *     rect is mapped to: a set of window indices (k range) -> year range,
+ *     and a set of selected segments (any segment whose bar/connector point
+ *     falls inside the rect at one of the brushed windows).
+ *  3. evolens_data.json (per-year raw scores) is fetched lazily on first use.
+ *  4. A slide-in side panel renders a raw line chart (d3/SVG) + a trend-motif
+ *     band (per-segment z-score, cross-segment IQR + median per year), with
+ *     a toggle for the motif and a close button.
+ *  5. While open, the brushed region is drawn as a semi-transparent overlay
+ *     on the Storyline canvas.
+ * ==========================================================================*/
+
+(function () {
+  "use strict";
+
+  function whenStorylineReady(cb) {
+    if (window.__storyline && window.__storyline.state.data) return cb();
+    const iv = setInterval(() => {
+      if (window.__storyline && window.__storyline.state.data) {
+        clearInterval(iv);
+        cb();
+      }
+    }, 50);
+  }
+
+  whenStorylineReady(init);
+
+  function init() {
+    const SL = window.__storyline;
+    const { state, canvas, canvasWrap, colX, colPitch, MARGIN_LEFT, visibleRoadIndices, getPointsCache, redraw } = SL;
+
+    // ------------------------------------------------------------------
+    // DOM: panel + brush hint, injected once
+    // ------------------------------------------------------------------
+    const panel = document.createElement("div");
+    panel.id = "evolensPanel";
+    panel.className = "evolens-panel hidden";
+    panel.innerHTML = `
+      <div class="evolens-header">
+        <div class="evolens-title-block">
+          <div class="evolens-title" id="evolensTitle"></div>
+          <div class="evolens-subtitle" id="evolensSubtitle"></div>
+        </div>
+        <button id="evolensClose" class="evolens-close" title="Close">&times;</button>
+      </div>
+      <label class="evolens-toggle">
+        <input type="checkbox" id="evolensMotifToggle" checked>
+        <span>Show trend motif</span>
+      </label>
+      <div id="evolensChartWrap" class="evolens-chart-wrap"></div>
+    `;
+    document.body.appendChild(panel);
+
+    const brushHint = document.createElement("div");
+    brushHint.id = "evolensHint";
+    brushHint.className = "evolens-hint hidden";
+    brushHint.textContent = "Select a single road to drill down";
+    canvasWrap.appendChild(brushHint);
+
+    const closeBtn = panel.querySelector("#evolensClose");
+    const motifToggle = panel.querySelector("#evolensMotifToggle");
+    const titleEl = panel.querySelector("#evolensTitle");
+    const subtitleEl = panel.querySelector("#evolensSubtitle");
+    const chartWrapEl = panel.querySelector("#evolensChartWrap");
+
+    let evolensData = null; // { years, scores } lazily fetched
+    let evolensFetchPromise = null;
+    function ensureEvolensData() {
+      if (evolensData) return Promise.resolve(evolensData);
+      if (evolensFetchPromise) return evolensFetchPromise;
+      evolensFetchPromise = fetch("evolens_data.json")
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status} fetching evolens_data.json`);
+          return r.json();
+        })
+        .then((d) => { evolensData = d; return d; });
+      return evolensFetchPromise;
+    }
+
+    // ------------------------------------------------------------------
+    // Brush state + overlay rectangle (drawn as part of storyline's own
+    // draw() via a hook we append after; simplest robust approach is a
+    // dedicated absolutely-positioned div overlay on top of the canvases,
+    // since it only needs to track viewport-relative screen coords).
+    // ------------------------------------------------------------------
+    const overlayEl = document.createElement("div");
+    overlayEl.id = "evolensBrushOverlay";
+    overlayEl.className = "evolens-brush-overlay hidden";
+    canvasWrap.appendChild(overlayEl);
+
+    const selectionEl = document.createElement("div");
+    selectionEl.id = "evolensSelectionOverlay";
+    selectionEl.className = "evolens-selection-overlay hidden";
+    canvasWrap.appendChild(selectionEl);
+
+    let brushing = false;
+    let brushStart = null; // {x, y} viewport-relative (client - rect, no scroll)
+    let brushCur = null;
+    const DRAG_THRESHOLD_PX = 5;
+
+    // active (committed) selection, world-space rect (content coordinates,
+    // i.e. independent of scroll) so it stays correctly placed on scroll.
+    let activeSelection = null; // { x0, y0, x1, y1 } in world coords
+
+    function clientToWorld(clientX, clientY) {
+      const rect = canvasWrap.getBoundingClientRect();
+      return {
+        x: clientX - rect.left + state.scrollLeft,
+        y: clientY - rect.top + state.scrollTop,
+      };
+    }
+
+    function updateBrushHintVisibility() {
+      if (state.selectedRoadIdx < 0) {
+        brushHint.classList.remove("hidden");
+      } else {
+        brushHint.classList.add("hidden");
+      }
+    }
+    updateBrushHintVisibility();
+
+    // Re-check hint whenever the road selection changes; storyline.js calls
+    // render()/selectRoad() on its own timers, so poll cheaply on relevant
+    // events instead of patching selectRoad().
+    const roadSearchEl = document.getElementById("roadSearch");
+    if (roadSearchEl) {
+      roadSearchEl.addEventListener("input", updateBrushHintVisibility);
+    }
+    document.addEventListener("click", updateBrushHintVisibility, true);
+
+    canvas.addEventListener("mousedown", (evt) => {
+      if (state.selectedRoadIdx < 0) return; // brushing disabled in All-roads view
+      if (evt.button !== 0) return;
+      brushing = true;
+      const rect = canvasWrap.getBoundingClientRect();
+      brushStart = { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+      brushCur = brushStart;
+      evt.preventDefault();
+    });
+
+    window.addEventListener("mousemove", (evt) => {
+      if (!brushing) return;
+      const rect = canvasWrap.getBoundingClientRect();
+      brushCur = { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+      drawBrushOverlay();
+    });
+
+    window.addEventListener("mouseup", (evt) => {
+      if (!brushing) return;
+      brushing = false;
+      overlayEl.classList.add("hidden");
+      const dx = brushCur.x - brushStart.x;
+      const dy = brushCur.y - brushStart.y;
+      if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return; // ignore tiny drags
+
+      const x0v = Math.min(brushStart.x, brushCur.x);
+      const x1v = Math.max(brushStart.x, brushCur.x);
+      const y0v = Math.min(brushStart.y, brushCur.y);
+      const y1v = Math.max(brushStart.y, brushCur.y);
+      // viewport -> world (content) coords
+      const worldRect = {
+        x0: x0v + state.scrollLeft, x1: x1v + state.scrollLeft,
+        y0: y0v + state.scrollTop, y1: y1v + state.scrollTop,
+      };
+      handleBrushEnd(worldRect);
+    });
+
+    function drawBrushOverlay() {
+      const rect = canvasWrap.getBoundingClientRect();
+      const x0 = Math.min(brushStart.x, brushCur.x);
+      const y0 = Math.min(brushStart.y, brushCur.y);
+      const w = Math.abs(brushCur.x - brushStart.x);
+      const h = Math.abs(brushCur.y - brushStart.y);
+      overlayEl.style.left = x0 + "px";
+      overlayEl.style.top = y0 + "px";
+      overlayEl.style.width = w + "px";
+      overlayEl.style.height = h + "px";
+      overlayEl.classList.remove("hidden");
+    }
+
+    // Keep the committed-selection overlay pinned to the right world-space
+    // rect as the user scrolls (mirrors storyline.js's own scroll sync).
+    canvasWrap.addEventListener("scroll", syncSelectionOverlay);
+    window.addEventListener("resize", syncSelectionOverlay);
+
+    function syncSelectionOverlay() {
+      if (!activeSelection) return;
+      const x0 = activeSelection.x0 - state.scrollLeft;
+      const y0 = activeSelection.y0 - state.scrollTop;
+      const w = activeSelection.x1 - activeSelection.x0;
+      const h = activeSelection.y1 - activeSelection.y0;
+      selectionEl.style.left = x0 + "px";
+      selectionEl.style.top = y0 + "px";
+      selectionEl.style.width = w + "px";
+      selectionEl.style.height = h + "px";
+    }
+
+    // ------------------------------------------------------------------
+    // Brush -> window range -> segment selection
+    // ------------------------------------------------------------------
+    function handleBrushEnd(worldRect) {
+      const roadIdx = state.selectedRoadIdx;
+      if (roadIdx < 0) return; // simplest robust option: single-road only (v1)
+
+      const pitch = colPitch();
+      let kMin = Math.floor((worldRect.x0 - MARGIN_LEFT) / pitch);
+      let kMax = Math.floor((worldRect.x1 - MARGIN_LEFT) / pitch);
+      kMin = Math.max(0, Math.min(state.numWindows - 1, kMin));
+      kMax = Math.max(0, Math.min(state.numWindows - 1, kMax));
+      if (kMin > kMax) return;
+
+      const pointsCache = getPointsCache();
+      const pts = pointsCache.get(roadIdx);
+      if (!pts) return;
+
+      const selectedSegIdx = [];
+      for (let segIdx = 0; segIdx < pts.length; segIdx++) {
+        const segPts = pts[segIdx];
+        let inside = false;
+        for (const p of segPts) {
+          if (p.k < kMin || p.k > kMax) continue;
+          if (p.y >= worldRect.y0 && p.y <= worldRect.y1) { inside = true; break; }
+        }
+        if (inside) selectedSegIdx.push(segIdx);
+      }
+      if (selectedSegIdx.length === 0) return;
+
+      const windows = state.data.windows;
+      const yearStart = windows[kMin].start;
+      const yearEnd = windows[kMax].end;
+
+      activeSelection = { x0: worldRect.x0, y0: worldRect.y0, x1: worldRect.x1, y1: worldRect.y1 };
+      selectionEl.classList.remove("hidden");
+      syncSelectionOverlay();
+
+      openPanel(roadIdx, selectedSegIdx, yearStart, yearEnd);
+    }
+
+    // ------------------------------------------------------------------
+    // Panel: fetch data, render chart
+    // ------------------------------------------------------------------
+    function closePanel() {
+      panel.classList.remove("open");
+      activeSelection = null;
+      selectionEl.classList.add("hidden");
+    }
+    closeBtn.addEventListener("click", closePanel);
+
+    function openPanel(roadIdx, segIdxList, yearStart, yearEnd) {
+      const road = state.data.roads[roadIdx];
+      titleEl.textContent = road.roadbed;
+      subtitleEl.textContent =
+        `${segIdxList.length} segment${segIdxList.length === 1 ? "" : "s"} selected  |  ${yearStart}–${yearEnd}`;
+      panel.classList.add("open");
+      panel.classList.remove("hidden");
+
+      chartWrapEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
+      ensureEvolensData().then((d) => {
+        renderChart(d, road, segIdxList, yearStart, yearEnd);
+      }).catch((err) => {
+        chartWrapEl.innerHTML = `<div class="evolens-loading">Failed to load evolens_data.json: ${err.message}</div>`;
+        console.error(err);
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // Chart rendering (d3 / SVG). Small-scale (tens of segments), so plain
+    // SVG is fine per spec - no canvas/WebGL needed here.
+    // ------------------------------------------------------------------
+    const CHART_COLORS = (typeof d3 !== "undefined" && d3.schemeTableau10)
+      ? d3.schemeTableau10
+      : ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
+         "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"];
+
+    function renderChart(evData, road, segIdxList, yearStart, yearEnd) {
+      chartWrapEl.innerHTML = "";
+      const years = evData.years.filter((y) => y >= yearStart && y <= yearEnd);
+      if (years.length === 0) {
+        chartWrapEl.innerHTML = `<div class="evolens-loading">No year data in range.</div>`;
+        return;
+      }
+      const yearIdx0 = evData.years.indexOf(years[0]);
+
+      // Per-segment raw series over the brushed years (null preserved = gap).
+      const series = [];
+      for (const segIdx of segIdxList) {
+        const seg = road.segments[segIdx];
+        const raw = evData.scores[seg.id];
+        const vals = years.map((_, i) => (raw ? raw[yearIdx0 + i] : null));
+        vals.forEach((v) => { if (typeof v !== "number" || isNaN(v)) return; });
+        series.push({ id: seg.id, segIdx, values: vals.map((v) => (typeof v === "number" && !isNaN(v) ? v : null)) });
+      }
+
+      // z-score per segment across its own observed values in this range.
+      const zSeries = series.map((s) => {
+        const observed = s.values.filter((v) => v !== null);
+        const mean = observed.length ? observed.reduce((a, b) => a + b, 0) / observed.length : 0;
+        const variance = observed.length ? observed.reduce((a, b) => a + (b - mean) * (b - mean), 0) / observed.length : 0;
+        const std = Math.sqrt(variance);
+        const z = s.values.map((v) => (v === null ? null : (std > 0 ? (v - mean) / std : 0)));
+        return { id: s.id, values: z };
+      });
+
+      // per-year 25th/50th/75th percentile across selected segments' z-values.
+      const motif = years.map((_, yi) => {
+        const vals = zSeries.map((s) => s.values[yi]).filter((v) => v !== null).sort((a, b) => a - b);
+        if (vals.length === 0) return { p25: null, p50: null, p75: null };
+        return { p25: percentile(vals, 0.25), p50: percentile(vals, 0.5), p75: percentile(vals, 0.75) };
+      });
+
+      drawSvgChart(years, series, motif);
+    }
+
+    function percentile(sortedArr, p) {
+      const idx = p * (sortedArr.length - 1);
+      const lo = Math.floor(idx), hi = Math.ceil(idx);
+      if (lo === hi) return sortedArr[lo];
+      const frac = idx - lo;
+      return sortedArr[lo] * (1 - frac) + sortedArr[hi] * frac;
+    }
+
+    function drawSvgChart(years, series, motif) {
+      const width = chartWrapEl.clientWidth || 420;
+      const rawHeight = 220;
+      const motifHeight = 140;
+      const margin = { top: 16, right: 16, bottom: 26, left: 36 };
+
+      const svg = d3.select(chartWrapEl)
+        .append("svg")
+        .attr("width", width)
+        .attr("height", rawHeight + motifHeight + margin.top + margin.bottom * 2 + 24);
+
+      const innerW = width - margin.left - margin.right;
+
+      const x = d3.scaleLinear()
+        .domain([years[0], years[years.length - 1]])
+        .range([0, innerW]);
+
+      // --- Raw line chart -------------------------------------------------
+      const rawG = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      let allVals = [];
+      for (const s of series) for (const v of s.values) if (v !== null) allVals.push(v);
+      const yRawDomain = allVals.length ? [Math.min(0, d3.min(allVals)), Math.max(100, d3.max(allVals))] : [0, 100];
+      const yRaw = d3.scaleLinear().domain(yRawDomain).range([rawHeight, 0]).nice();
+
+      rawG.append("g").call(d3.axisLeft(yRaw).ticks(5));
+      rawG.append("g")
+        .attr("transform", `translate(0,${rawHeight})`)
+        .call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(Math.min(years.length, 8)));
+
+      rawG.append("text")
+        .attr("class", "evolens-axis-label")
+        .attr("x", -margin.left + 4)
+        .attr("y", -4)
+        .text("Condition score");
+
+      const lineGen = d3.line()
+        .defined((d) => d.v !== null)
+        .x((d) => x(d.year))
+        .y((d) => yRaw(d.v));
+
+      series.forEach((s, i) => {
+        const color = CHART_COLORS[i % CHART_COLORS.length];
+        const pts = years.map((yr, yi) => ({ year: yr, v: s.values[yi] }));
+        // defined() breaks the path at nulls automatically (no interpolation)
+        rawG.append("path")
+          .datum(pts)
+          .attr("class", "evolens-raw-line")
+          .attr("fill", "none")
+          .attr("stroke", color)
+          .attr("stroke-width", 1.4)
+          .attr("d", lineGen);
+      });
+
+      // --- Trend motif (z-score IQR band + median), toggle-controlled -----
+      const motifG = svg.append("g")
+        .attr("class", "evolens-motif-group")
+        .attr("transform", `translate(${margin.left},${margin.top + rawHeight + margin.bottom})`);
+
+      let motifZVals = [];
+      for (const m of motif) {
+        if (m.p25 !== null) motifZVals.push(m.p25);
+        if (m.p75 !== null) motifZVals.push(m.p75);
+      }
+      const yMotifDomain = motifZVals.length ? [d3.min(motifZVals) - 0.5, d3.max(motifZVals) + 0.5] : [-1, 1];
+      const yMotif = d3.scaleLinear().domain(yMotifDomain).range([motifHeight, 0]).nice();
+
+      motifG.append("g").call(d3.axisLeft(yMotif).ticks(4));
+      motifG.append("g")
+        .attr("transform", `translate(0,${motifHeight})`)
+        .call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(Math.min(years.length, 8)));
+
+      motifG.append("text")
+        .attr("class", "evolens-axis-label")
+        .attr("x", -margin.left + 4)
+        .attr("y", -4)
+        .text("Trend motif (z-score IQR + median)");
+
+      const areaGen = d3.area()
+        .defined((d) => d.p25 !== null && d.p75 !== null)
+        .x((d) => x(d.year))
+        .y0((d) => yMotif(d.p25))
+        .y1((d) => yMotif(d.p75));
+
+      const medianLineGen = d3.line()
+        .defined((d) => d.p50 !== null)
+        .x((d) => x(d.year))
+        .y((d) => yMotif(d.p50));
+
+      const motifPts = years.map((yr, yi) => ({ year: yr, p25: motif[yi].p25, p50: motif[yi].p50, p75: motif[yi].p75 }));
+
+      motifG.append("path")
+        .datum(motifPts)
+        .attr("class", "evolens-motif-band")
+        .attr("fill", "#4e79a7")
+        .attr("fill-opacity", 0.25)
+        .attr("d", areaGen);
+
+      motifG.append("path")
+        .datum(motifPts)
+        .attr("class", "evolens-motif-median")
+        .attr("fill", "none")
+        .attr("stroke", "#2d5f8a")
+        .attr("stroke-width", 2)
+        .attr("d", medianLineGen);
+
+      applyMotifVisibility();
+    }
+
+    function applyMotifVisibility() {
+      const show = motifToggle.checked;
+      chartWrapEl.querySelectorAll(".evolens-motif-group").forEach((g) => {
+        g.style.display = show ? "" : "none";
+      });
+    }
+    motifToggle.addEventListener("change", applyMotifVisibility);
+  }
+})();

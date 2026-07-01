@@ -1,0 +1,26 @@
+{
+  "5": {
+    "n_windows": 25,
+    "avg_sections_per_window": 9806,
+    "min_sections_per_window": 4720,
+    "max_sections_per_window": 12125,
+    "sections_in_>=1_window": 14810,
+    "sections_in_0_windows": 2
+  },
+  "6": {
+    "n_windows": 24,
+    "avg_sections_per_window": 10599,
+    "min_sections_per_window": 6483,
+    "max_sections_per_window": 12679,
+    "sections_in_>=1_window": 14812,
+    "sections_in_0_windows": 0
+  },
+  "7": {
+    "n_windows": 23,
+    "avg_sections_per_window": 11124,
+    "min_sections_per_window": 7709,
+    "max_sections_per_window": 13021,
+    "sections_in_>=1_window": 14812,
+    "sections_in_0_windows": 0
+  }
+}

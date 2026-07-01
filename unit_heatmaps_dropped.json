@@ -1,0 +1,3273 @@
+{
+  "min_segments": 15,
+  "dropped": [
+    {
+      "key": "SH0071 L \u00b7 76 - FAYETTE",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0190 L \u00b7 43 - COLLIN",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0190 R \u00b7 43 - COLLIN",
+      "n_segments": 14
+    },
+    {
+      "key": "SS0601 R \u00b7 72 - EL PASO",
+      "n_segments": 14
+    },
+    {
+      "key": "FM0731 K \u00b7 220 - TARRANT",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0035 R \u00b7 20 - BRAZORIA",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0035 L \u00b7 20 - BRAZORIA",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0199 A \u00b7 220 - TARRANT",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0045 L \u00b7 246 - WILLIAMSON",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0045 R \u00b7 246 - WILLIAMSON",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0006 L \u00b7 21 - BRAZOS",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0006 R \u00b7 21 - BRAZOS",
+      "n_segments": 14
+    },
+    {
+      "key": "UA0281 K \u00b7 149 - LIVE OAK",
+      "n_segments": 14
+    },
+    {
+      "key": "US0380 L \u00b7 43 - COLLIN",
+      "n_segments": 14
+    },
+    {
+      "key": "US0380 R \u00b7 43 - COLLIN",
+      "n_segments": 14
+    },
+    {
+      "key": "FM1093 L \u00b7 102 - HARRIS",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0105 K \u00b7 124 - JEFFERSON",
+      "n_segments": 14
+    },
+    {
+      "key": "SS0261 L \u00b7 102 - HARRIS",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0066 R \u00b7 57 - DALLAS",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0190 X \u00b7 43 - COLLIN",
+      "n_segments": 13
+    },
+    {
+      "key": "US0080 A \u00b7 57 - DALLAS",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0066 L \u00b7 57 - DALLAS",
+      "n_segments": 13
+    },
+    {
+      "key": "FM2478 L \u00b7 43 - COLLIN",
+      "n_segments": 13
+    },
+    {
+      "key": "FM2478 R \u00b7 43 - COLLIN",
+      "n_segments": 13
+    },
+    {
+      "key": "US0059 L \u00b7 34 - CASS",
+      "n_segments": 13
+    },
+    {
+      "key": "US0059 R \u00b7 34 - CASS",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0289 L \u00b7 57 - DALLAS",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0289 R \u00b7 57 - DALLAS",
+      "n_segments": 13
+    },
+    {
+      "key": "IH0035EX \u00b7 61 - DENTON",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0146 X \u00b7 102 - HARRIS",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0288 X \u00b7 20 - BRAZORIA",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0114 A \u00b7 57 - DALLAS",
+      "n_segments": 13
+    },
+    {
+      "key": "FM1093 R \u00b7 102 - HARRIS",
+      "n_segments": 13
+    },
+    {
+      "key": "IH0010 X \u00b7 124 - JEFFERSON",
+      "n_segments": 13
+    },
+    {
+      "key": "SH0288 A \u00b7 102 - HARRIS",
+      "n_segments": 12
+    },
+    {
+      "key": "SS0330 L \u00b7 102 - HARRIS",
+      "n_segments": 12
+    },
+    {
+      "key": "SH0342 L \u00b7 57 - DALLAS",
+      "n_segments": 12
+    },
+    {
+      "key": "SH0342 R \u00b7 57 - DALLAS",
+      "n_segments": 12
+    },
+    {
+      "key": "SH0190 A \u00b7 43 - COLLIN",
+      "n_segments": 12
+    },
+    {
+      "key": "SL0289 L \u00b7 152 - LUBBOCK",
+      "n_segments": 12
+    },
+    {
+      "key": "SS0330 R \u00b7 102 - HARRIS",
+      "n_segments": 12
+    },
+    {
+      "key": "IH0035WR \u00b7 127 - JOHNSON",
+      "n_segments": 12
+    },
+    {
+      "key": "US0377 K \u00b7 61 - DENTON",
+      "n_segments": 12
+    },
+    {
+      "key": "IH0035 L \u00b7 14 - BELL",
+      "n_segments": 12
+    },
+    {
+      "key": "IH0035 R \u00b7 14 - BELL",
+      "n_segments": 12
+    },
+    {
+      "key": "IH0020 R \u00b7 73 - ERATH",
+      "n_segments": 12
+    },
+    {
+      "key": "SH0288 A \u00b7 20 - BRAZORIA",
+      "n_segments": 12
+    },
+    {
+      "key": "SH0087 K \u00b7 124 - JEFFERSON",
+      "n_segments": 12
+    },
+    {
+      "key": "IH0035 X \u00b7 49 - COOKE",
+      "n_segments": 12
+    },
+    {
+      "key": "US0069 R \u00b7 124 - JEFFERSON",
+      "n_segments": 12
+    },
+    {
+      "key": "US0082 X \u00b7 243 - WICHITA",
+      "n_segments": 12
+    },
+    {
+      "key": "US0175 A \u00b7 57 - DALLAS",
+      "n_segments": 12
+    },
+    {
+      "key": "SL0012 X \u00b7 57 - DALLAS",
+      "n_segments": 12
+    },
+    {
+      "key": "FM0518 R \u00b7 85 - GALVESTON",
+      "n_segments": 12
+    },
+    {
+      "key": "FM0525 K \u00b7 102 - HARRIS",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0157 R \u00b7 220 - TARRANT",
+      "n_segments": 11
+    },
+    {
+      "key": "SL0289 R \u00b7 152 - LUBBOCK",
+      "n_segments": 11
+    },
+    {
+      "key": "IH0035WL \u00b7 127 - JOHNSON",
+      "n_segments": 11
+    },
+    {
+      "key": "IH0040 L \u00b7 188 - POTTER",
+      "n_segments": 11
+    },
+    {
+      "key": "IH0040 R \u00b7 188 - POTTER",
+      "n_segments": 11
+    },
+    {
+      "key": "US0059 L \u00b7 155 - MARION",
+      "n_segments": 11
+    },
+    {
+      "key": "US0059 R \u00b7 155 - MARION",
+      "n_segments": 11
+    },
+    {
+      "key": "IH0020 L \u00b7 73 - ERATH",
+      "n_segments": 11
+    },
+    {
+      "key": "BU0090YK \u00b7 181 - ORANGE",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0366 K \u00b7 124 - JEFFERSON",
+      "n_segments": 11
+    },
+    {
+      "key": "SH0288 X \u00b7 102 - HARRIS",
+      "n_segments": 11
+    },
+    {
+      "key": "SH0026 R \u00b7 220 - TARRANT",
+      "n_segments": 11
+    },
+    {
+      "key": "SH0026 L \u00b7 220 - TARRANT",
+      "n_segments": 11
+    },
+    {
+      "key": "FM3040 L \u00b7 61 - DENTON",
+      "n_segments": 11
+    },
+    {
+      "key": "FM3040 R \u00b7 61 - DENTON",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0544 L \u00b7 43 - COLLIN",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0544 R \u00b7 43 - COLLIN",
+      "n_segments": 11
+    },
+    {
+      "key": "SH0114 L \u00b7 61 - DENTON",
+      "n_segments": 11
+    },
+    {
+      "key": "SH0114 X \u00b7 57 - DALLAS",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0517 K \u00b7 85 - GALVESTON",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0528 K \u00b7 85 - GALVESTON",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0518 L \u00b7 85 - GALVESTON",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0518 K \u00b7 85 - GALVESTON",
+      "n_segments": 11
+    },
+    {
+      "key": "FM0518 K \u00b7 20 - BRAZORIA",
+      "n_segments": 10
+    },
+    {
+      "key": "SH0356 L \u00b7 57 - DALLAS",
+      "n_segments": 10
+    },
+    {
+      "key": "SH0087 K \u00b7 181 - ORANGE",
+      "n_segments": 10
+    },
+    {
+      "key": "SS0408 L \u00b7 57 - DALLAS",
+      "n_segments": 10
+    },
+    {
+      "key": "SS0408 R \u00b7 57 - DALLAS",
+      "n_segments": 10
+    },
+    {
+      "key": "US0077 R \u00b7 61 - DENTON",
+      "n_segments": 10
+    },
+    {
+      "key": "FM0157 L \u00b7 220 - TARRANT",
+      "n_segments": 10
+    },
+    {
+      "key": "IH0010 X \u00b7 72 - EL PASO",
+      "n_segments": 10
+    },
+    {
+      "key": "IH0037 X \u00b7 149 - LIVE OAK",
+      "n_segments": 10
+    },
+    {
+      "key": "US0059 A \u00b7 80 - FORT BEND",
+      "n_segments": 10
+    },
+    {
+      "key": "FM2004 K \u00b7 20 - BRAZORIA",
+      "n_segments": 10
+    },
+    {
+      "key": "SH0114 R \u00b7 57 - DALLAS",
+      "n_segments": 10
+    },
+    {
+      "key": "SH0006 K \u00b7 80 - FORT BEND",
+      "n_segments": 10
+    },
+    {
+      "key": "FM1764 K \u00b7 85 - GALVESTON",
+      "n_segments": 10
+    },
+    {
+      "key": "FM1764 L \u00b7 85 - GALVESTON",
+      "n_segments": 10
+    },
+    {
+      "key": "FM1764 R \u00b7 85 - GALVESTON",
+      "n_segments": 10
+    },
+    {
+      "key": "US0090 L \u00b7 146 - LIBERTY",
+      "n_segments": 10
+    },
+    {
+      "key": "US0090 R \u00b7 124 - JEFFERSON",
+      "n_segments": 10
+    },
+    {
+      "key": "SS0348 R \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "IH0027 X \u00b7 152 - LUBBOCK",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0190 R \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "US0080 R \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "SS0348 L \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0356 R \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "US0077 L \u00b7 61 - DENTON",
+      "n_segments": 9
+    },
+    {
+      "key": "US0085 R \u00b7 72 - EL PASO",
+      "n_segments": 9
+    },
+    {
+      "key": "FM3029 K \u00b7 220 - TARRANT",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0035 R \u00b7 102 - HARRIS",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0161 A \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "US0059 R \u00b7 204 - SAN JACINTO",
+      "n_segments": 9
+    },
+    {
+      "key": "IH0010 A \u00b7 72 - EL PASO",
+      "n_segments": 9
+    },
+    {
+      "key": "US0075 A \u00b7 92 - GRAYSON",
+      "n_segments": 9
+    },
+    {
+      "key": "US0075 X \u00b7 92 - GRAYSON",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0161 X \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "FM1382 K \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "US0067 X \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "US0083 L \u00b7 221 - TAYLOR",
+      "n_segments": 9
+    },
+    {
+      "key": "US0083 R \u00b7 221 - TAYLOR",
+      "n_segments": 9
+    },
+    {
+      "key": "FM0105 K \u00b7 181 - ORANGE",
+      "n_segments": 9
+    },
+    {
+      "key": "US0096 L \u00b7 101 - HARDIN",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0249 L \u00b7 170 - MONTGOMERY",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0249 R \u00b7 170 - MONTGOMERY",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0146 L \u00b7 85 - GALVESTON",
+      "n_segments": 9
+    },
+    {
+      "key": "US0069 L \u00b7 124 - JEFFERSON",
+      "n_segments": 9
+    },
+    {
+      "key": "IH0020 R \u00b7 234 - VAN ZANDT",
+      "n_segments": 9
+    },
+    {
+      "key": "US0059 X \u00b7 80 - FORT BEND",
+      "n_segments": 9
+    },
+    {
+      "key": "SL0012 A \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0114 L \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0180 L \u00b7 57 - DALLAS",
+      "n_segments": 9
+    },
+    {
+      "key": "FM2094 L \u00b7 85 - GALVESTON",
+      "n_segments": 9
+    },
+    {
+      "key": "FM2094 R \u00b7 85 - GALVESTON",
+      "n_segments": 9
+    },
+    {
+      "key": "FM2351 R \u00b7 102 - HARRIS",
+      "n_segments": 9
+    },
+    {
+      "key": "SH0073 X \u00b7 124 - JEFFERSON",
+      "n_segments": 9
+    },
+    {
+      "key": "US0090 A \u00b7 102 - HARRIS",
+      "n_segments": 9
+    },
+    {
+      "key": "IH0010 L \u00b7 124 - JEFFERSON",
+      "n_segments": 9
+    },
+    {
+      "key": "IH0010 R \u00b7 124 - JEFFERSON",
+      "n_segments": 9
+    },
+    {
+      "key": "US0090 K \u00b7 124 - JEFFERSON",
+      "n_segments": 9
+    },
+    {
+      "key": "US0080 L \u00b7 57 - DALLAS",
+      "n_segments": 8
+    },
+    {
+      "key": "US0085 L \u00b7 72 - EL PASO",
+      "n_segments": 8
+    },
+    {
+      "key": "FM1484 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 8
+    },
+    {
+      "key": "FM0559 K \u00b7 19 - BOWIE",
+      "n_segments": 8
+    },
+    {
+      "key": "SL0354 L \u00b7 57 - DALLAS",
+      "n_segments": 8
+    },
+    {
+      "key": "SL0354 R \u00b7 57 - DALLAS",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0078 R \u00b7 43 - COLLIN",
+      "n_segments": 8
+    },
+    {
+      "key": "US0067 A \u00b7 57 - DALLAS",
+      "n_segments": 8
+    },
+    {
+      "key": "IH0020 R \u00b7 68 - EASTLAND",
+      "n_segments": 8
+    },
+    {
+      "key": "US0067 L \u00b7 71 - ELLIS",
+      "n_segments": 8
+    },
+    {
+      "key": "US0067 R \u00b7 71 - ELLIS",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0347 K \u00b7 124 - JEFFERSON",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0035 L \u00b7 102 - HARRIS",
+      "n_segments": 8
+    },
+    {
+      "key": "FM1876 R \u00b7 80 - FORT BEND",
+      "n_segments": 8
+    },
+    {
+      "key": "US0183 L \u00b7 246 - WILLIAMSON",
+      "n_segments": 8
+    },
+    {
+      "key": "US0183 R \u00b7 246 - WILLIAMSON",
+      "n_segments": 8
+    },
+    {
+      "key": "US0069 L \u00b7 101 - HARDIN",
+      "n_segments": 8
+    },
+    {
+      "key": "US0082 A \u00b7 243 - WICHITA",
+      "n_segments": 8
+    },
+    {
+      "key": "IH0020 L \u00b7 234 - VAN ZANDT",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0199 L \u00b7 220 - TARRANT",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0199 R \u00b7 220 - TARRANT",
+      "n_segments": 8
+    },
+    {
+      "key": "IH0020 L \u00b7 212 - SMITH",
+      "n_segments": 8
+    },
+    {
+      "key": "IH0020 R \u00b7 212 - SMITH",
+      "n_segments": 8
+    },
+    {
+      "key": "FM0407 L \u00b7 61 - DENTON",
+      "n_segments": 8
+    },
+    {
+      "key": "FM0407 R \u00b7 61 - DENTON",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0114 L \u00b7 249 - WISE",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0114 R \u00b7 61 - DENTON",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0190 L \u00b7 57 - DALLAS",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0114 A \u00b7 220 - TARRANT",
+      "n_segments": 8
+    },
+    {
+      "key": "SH0114 X \u00b7 220 - TARRANT",
+      "n_segments": 8
+    },
+    {
+      "key": "US0082 L \u00b7 92 - GRAYSON",
+      "n_segments": 8
+    },
+    {
+      "key": "US0082 R \u00b7 92 - GRAYSON",
+      "n_segments": 8
+    },
+    {
+      "key": "US0080 X \u00b7 57 - DALLAS",
+      "n_segments": 8
+    },
+    {
+      "key": "FM2351 L \u00b7 102 - HARRIS",
+      "n_segments": 8
+    },
+    {
+      "key": "SS0330 X \u00b7 102 - HARRIS",
+      "n_segments": 8
+    },
+    {
+      "key": "IH0010 X \u00b7 181 - ORANGE",
+      "n_segments": 8
+    },
+    {
+      "key": "IH0044 A \u00b7 243 - WICHITA",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0044 X \u00b7 243 - WICHITA",
+      "n_segments": 7
+    },
+    {
+      "key": "US0175 R \u00b7 130 - KAUFMAN",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0198 K \u00b7 108 - HENDERSON",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0190 A \u00b7 57 - DALLAS",
+      "n_segments": 7
+    },
+    {
+      "key": "US0281 L \u00b7 243 - WICHITA",
+      "n_segments": 7
+    },
+    {
+      "key": "US0281 R \u00b7 243 - WICHITA",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0190 X \u00b7 57 - DALLAS",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0037 A \u00b7 149 - LIVE OAK",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0040 R \u00b7 65 - DONLEY",
+      "n_segments": 7
+    },
+    {
+      "key": "US0067 K \u00b7 19 - BOWIE",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0045 A \u00b7 71 - ELLIS",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0078 L \u00b7 43 - COLLIN",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0045 X \u00b7 57 - DALLAS",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0020 L \u00b7 68 - EASTLAND",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0035 A \u00b7 61 - DENTON",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0035ER \u00b7 61 - DENTON",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0347 L \u00b7 124 - JEFFERSON",
+      "n_segments": 7
+    },
+    {
+      "key": "SS0136 K \u00b7 124 - JEFFERSON",
+      "n_segments": 7
+    },
+    {
+      "key": "US0070 A \u00b7 244 - WILBARGER",
+      "n_segments": 7
+    },
+    {
+      "key": "US0070 X \u00b7 244 - WILBARGER",
+      "n_segments": 7
+    },
+    {
+      "key": "FM1876 L \u00b7 80 - FORT BEND",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0003 K \u00b7 85 - GALVESTON",
+      "n_segments": 7
+    },
+    {
+      "key": "SL0197 K \u00b7 85 - GALVESTON",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0035 A \u00b7 49 - COOKE",
+      "n_segments": 7
+    },
+    {
+      "key": "FM1187 R \u00b7 220 - TARRANT",
+      "n_segments": 7
+    },
+    {
+      "key": "US0175 L \u00b7 57 - DALLAS",
+      "n_segments": 7
+    },
+    {
+      "key": "US0175 R \u00b7 57 - DALLAS",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0031 K \u00b7 175 - NAVARRO",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0066 L \u00b7 199 - ROCKWALL",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0066 R \u00b7 199 - ROCKWALL",
+      "n_segments": 7
+    },
+    {
+      "key": "FM0528 K \u00b7 102 - HARRIS",
+      "n_segments": 7
+    },
+    {
+      "key": "SHNASA K \u00b7 102 - HARRIS",
+      "n_segments": 7
+    },
+    {
+      "key": "SS0330 A \u00b7 102 - HARRIS",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0010 L \u00b7 80 - FORT BEND",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0010 R \u00b7 80 - FORT BEND",
+      "n_segments": 7
+    },
+    {
+      "key": "SL0151 L \u00b7 19 - BOWIE",
+      "n_segments": 7
+    },
+    {
+      "key": "SL0151 R \u00b7 19 - BOWIE",
+      "n_segments": 7
+    },
+    {
+      "key": "FM0365 K \u00b7 124 - JEFFERSON",
+      "n_segments": 7
+    },
+    {
+      "key": "IH0010 A \u00b7 181 - ORANGE",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0183 L \u00b7 220 - TARRANT",
+      "n_segments": 6
+    },
+    {
+      "key": "SL0336 L \u00b7 170 - MONTGOMERY",
+      "n_segments": 6
+    },
+    {
+      "key": "US0183 K \u00b7 244 - WILBARGER",
+      "n_segments": 6
+    },
+    {
+      "key": "US0071 K \u00b7 19 - BOWIE",
+      "n_segments": 6
+    },
+    {
+      "key": "IH0027 A \u00b7 152 - LUBBOCK",
+      "n_segments": 6
+    },
+    {
+      "key": "IH0044 R \u00b7 243 - WICHITA",
+      "n_segments": 6
+    },
+    {
+      "key": "IH0044 L \u00b7 243 - WICHITA",
+      "n_segments": 6
+    },
+    {
+      "key": "SHNASA L \u00b7 102 - HARRIS",
+      "n_segments": 6
+    },
+    {
+      "key": "SHNASA R \u00b7 102 - HARRIS",
+      "n_segments": 6
+    },
+    {
+      "key": "US0059 L \u00b7 204 - SAN JACINTO",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0178 L \u00b7 72 - EL PASO",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0178 R \u00b7 72 - EL PASO",
+      "n_segments": 6
+    },
+    {
+      "key": "FM1110 K \u00b7 72 - EL PASO",
+      "n_segments": 6
+    },
+    {
+      "key": "FM2499 R \u00b7 220 - TARRANT",
+      "n_segments": 6
+    },
+    {
+      "key": "FM2499 L \u00b7 220 - TARRANT",
+      "n_segments": 6
+    },
+    {
+      "key": "IH0045 X \u00b7 71 - ELLIS",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0310 L \u00b7 57 - DALLAS",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0310 R \u00b7 57 - DALLAS",
+      "n_segments": 6
+    },
+    {
+      "key": "US0077 K \u00b7 71 - ELLIS",
+      "n_segments": 6
+    },
+    {
+      "key": "BU0077LR \u00b7 161 - MCLENNAN",
+      "n_segments": 6
+    },
+    {
+      "key": "SL0328 K \u00b7 38 - CHILDRESS",
+      "n_segments": 6
+    },
+    {
+      "key": "IH0035EL \u00b7 61 - DENTON",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0240 R \u00b7 243 - WICHITA",
+      "n_segments": 6
+    },
+    {
+      "key": "SS0005 L \u00b7 102 - HARRIS",
+      "n_segments": 6
+    },
+    {
+      "key": "SS0005 R \u00b7 102 - HARRIS",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0035 K \u00b7 102 - HARRIS",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0003 L \u00b7 85 - GALVESTON",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0003 R \u00b7 85 - GALVESTON",
+      "n_segments": 6
+    },
+    {
+      "key": "US0069 R \u00b7 101 - HARDIN",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0035 K \u00b7 20 - BRAZORIA",
+      "n_segments": 6
+    },
+    {
+      "key": "FM1187 L \u00b7 220 - TARRANT",
+      "n_segments": 6
+    },
+    {
+      "key": "FM2934 L \u00b7 61 - DENTON",
+      "n_segments": 6
+    },
+    {
+      "key": "FM0646 K \u00b7 85 - GALVESTON",
+      "n_segments": 6
+    },
+    {
+      "key": "US0380 L \u00b7 61 - DENTON",
+      "n_segments": 6
+    },
+    {
+      "key": "US0380 R \u00b7 61 - DENTON",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0334 K \u00b7 108 - HENDERSON",
+      "n_segments": 6
+    },
+    {
+      "key": "FM0912 K \u00b7 239 - WASHINGTON",
+      "n_segments": 6
+    },
+    {
+      "key": "FM0529 L \u00b7 102 - HARRIS",
+      "n_segments": 6
+    },
+    {
+      "key": "FM3345 K \u00b7 80 - FORT BEND",
+      "n_segments": 6
+    },
+    {
+      "key": "US0077 L \u00b7 178 - NUECES",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0099 K \u00b7 80 - FORT BEND",
+      "n_segments": 6
+    },
+    {
+      "key": "SH0332 K \u00b7 20 - BRAZORIA",
+      "n_segments": 6
+    },
+    {
+      "key": "IH0010 A \u00b7 237 - WALLER",
+      "n_segments": 6
+    },
+    {
+      "key": "SL0336 R \u00b7 170 - MONTGOMERY",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0003 R \u00b7 102 - HARRIS",
+      "n_segments": 5
+    },
+    {
+      "key": "SL0267 K \u00b7 243 - WICHITA",
+      "n_segments": 5
+    },
+    {
+      "key": "FM0372 K \u00b7 49 - COOKE",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0096 L \u00b7 85 - GALVESTON",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0096 R \u00b7 85 - GALVESTON",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0040 L \u00b7 59 - DEAF SMITH",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0040 R \u00b7 59 - DEAF SMITH",
+      "n_segments": 5
+    },
+    {
+      "key": "FM2181 R \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "SL0289 A \u00b7 152 - LUBBOCK",
+      "n_segments": 5
+    },
+    {
+      "key": "FM2181 L \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "FM2281 R \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0030 A \u00b7 199 - ROCKWALL",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0030 X \u00b7 199 - ROCKWALL",
+      "n_segments": 5
+    },
+    {
+      "key": "US0385 K \u00b7 59 - DEAF SMITH",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0019 L \u00b7 60 - DELTA",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0045 X \u00b7 175 - NAVARRO",
+      "n_segments": 5
+    },
+    {
+      "key": "US0059 L \u00b7 19 - BOWIE",
+      "n_segments": 5
+    },
+    {
+      "key": "US0059 R \u00b7 19 - BOWIE",
+      "n_segments": 5
+    },
+    {
+      "key": "US0287 K \u00b7 38 - CHILDRESS",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0101 R \u00b7 249 - WISE",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0101 L \u00b7 249 - WISE",
+      "n_segments": 5
+    },
+    {
+      "key": "FM0423 R \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "US0377 L \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "US0377 R \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "FM0740 L \u00b7 199 - ROCKWALL",
+      "n_segments": 5
+    },
+    {
+      "key": "FM0740 R \u00b7 199 - ROCKWALL",
+      "n_segments": 5
+    },
+    {
+      "key": "BU0287PR \u00b7 220 - TARRANT",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0045 A \u00b7 57 - DALLAS",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0121 A \u00b7 220 - TARRANT",
+      "n_segments": 5
+    },
+    {
+      "key": "BU0287FK \u00b7 244 - WILBARGER",
+      "n_segments": 5
+    },
+    {
+      "key": "US0059 L \u00b7 183 - PANOLA",
+      "n_segments": 5
+    },
+    {
+      "key": "US0059 R \u00b7 183 - PANOLA",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0081 L \u00b7 110 - HILL",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0081 R \u00b7 110 - HILL",
+      "n_segments": 5
+    },
+    {
+      "key": "BU0287JK \u00b7 243 - WICHITA",
+      "n_segments": 5
+    },
+    {
+      "key": "BU0077LL \u00b7 161 - MCLENNAN",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0035 X \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "BI0020NK \u00b7 221 - TAYLOR",
+      "n_segments": 5
+    },
+    {
+      "key": "SL0001 R \u00b7 227 - TRAVIS",
+      "n_segments": 5
+    },
+    {
+      "key": "SL0573 R \u00b7 146 - LIBERTY",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0146 K \u00b7 146 - LIBERTY",
+      "n_segments": 5
+    },
+    {
+      "key": "SS0380 L \u00b7 124 - JEFFERSON",
+      "n_segments": 5
+    },
+    {
+      "key": "SS0380 R \u00b7 124 - JEFFERSON",
+      "n_segments": 5
+    },
+    {
+      "key": "US0059 L \u00b7 146 - LIBERTY",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0240 L \u00b7 243 - WICHITA",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0146 R \u00b7 85 - GALVESTON",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0199 X \u00b7 220 - TARRANT",
+      "n_segments": 5
+    },
+    {
+      "key": "SS0303 L \u00b7 57 - DALLAS",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0114 R \u00b7 249 - WISE",
+      "n_segments": 5
+    },
+    {
+      "key": "FM2934 R \u00b7 61 - DENTON",
+      "n_segments": 5
+    },
+    {
+      "key": "SS0244 L \u00b7 57 - DALLAS",
+      "n_segments": 5
+    },
+    {
+      "key": "SS0244 R \u00b7 57 - DALLAS",
+      "n_segments": 5
+    },
+    {
+      "key": "IH0020 R \u00b7 93 - GREGG",
+      "n_segments": 5
+    },
+    {
+      "key": "FM0529 R \u00b7 102 - HARRIS",
+      "n_segments": 5
+    },
+    {
+      "key": "US0077 R \u00b7 178 - NUECES",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0275 K \u00b7 85 - GALVESTON",
+      "n_segments": 5
+    },
+    {
+      "key": "US0090 X \u00b7 102 - HARRIS",
+      "n_segments": 5
+    },
+    {
+      "key": "SH0183 R \u00b7 220 - TARRANT",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0035 L \u00b7 240 - WEBB",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0035 R \u00b7 240 - WEBB",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0544 K \u00b7 61 - DENTON",
+      "n_segments": 4
+    },
+    {
+      "key": "US0069 R \u00b7 92 - GRAYSON",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0731 R \u00b7 127 - JOHNSON",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0121 L \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0121 R \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "US0069 L \u00b7 92 - GRAYSON",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0359 R \u00b7 43 - COLLIN",
+      "n_segments": 4
+    },
+    {
+      "key": "US0175 K \u00b7 108 - HENDERSON",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0366 L \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0366 R \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0035WX \u00b7 61 - DENTON",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0045 A \u00b7 236 - WALKER",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0035 L \u00b7 227 - TRAVIS",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0546 K \u00b7 43 - COLLIN",
+      "n_segments": 4
+    },
+    {
+      "key": "FM2281 L \u00b7 61 - DENTON",
+      "n_segments": 4
+    },
+    {
+      "key": "US0069 L \u00b7 117 - HUNT",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0205 L \u00b7 199 - ROCKWALL",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0205 R \u00b7 199 - ROCKWALL",
+      "n_segments": 4
+    },
+    {
+      "key": "US0287 K \u00b7 100 - HARDEMAN",
+      "n_segments": 4
+    },
+    {
+      "key": "BU0287PL \u00b7 220 - TARRANT",
+      "n_segments": 4
+    },
+    {
+      "key": "US0287 A \u00b7 244 - WILBARGER",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0121 X \u00b7 220 - TARRANT",
+      "n_segments": 4
+    },
+    {
+      "key": "US0082 L \u00b7 152 - LUBBOCK",
+      "n_segments": 4
+    },
+    {
+      "key": "US0082 R \u00b7 152 - LUBBOCK",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0034 L \u00b7 130 - KAUFMAN",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0034 R \u00b7 130 - KAUFMAN",
+      "n_segments": 4
+    },
+    {
+      "key": "US0062 L \u00b7 152 - LUBBOCK",
+      "n_segments": 4
+    },
+    {
+      "key": "US0062 R \u00b7 152 - LUBBOCK",
+      "n_segments": 4
+    },
+    {
+      "key": "US0062 X \u00b7 152 - LUBBOCK",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0035 X \u00b7 110 - HILL",
+      "n_segments": 4
+    },
+    {
+      "key": "US0087 K \u00b7 115 - HOWARD",
+      "n_segments": 4
+    },
+    {
+      "key": "SL0001 L \u00b7 227 - TRAVIS",
+      "n_segments": 4
+    },
+    {
+      "key": "US0077 L \u00b7 166 - MILAM",
+      "n_segments": 4
+    },
+    {
+      "key": "US0077 R \u00b7 166 - MILAM",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0082 K \u00b7 124 - JEFFERSON",
+      "n_segments": 4
+    },
+    {
+      "key": "US0277 K \u00b7 218 - SUTTON",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0003 L \u00b7 102 - HARRIS",
+      "n_segments": 4
+    },
+    {
+      "key": "FM1092 K \u00b7 80 - FORT BEND",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0124 R \u00b7 36 - CHAMBERS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0146 K \u00b7 102 - HARRIS",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0523 L \u00b7 20 - BRAZORIA",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0523 R \u00b7 20 - BRAZORIA",
+      "n_segments": 4
+    },
+    {
+      "key": "US0079 K \u00b7 166 - MILAM",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0288 K \u00b7 20 - BRAZORIA",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0303 R \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0071 L \u00b7 227 - TRAVIS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0071 R \u00b7 227 - TRAVIS",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0482 L \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0183 A \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0183 L \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0664 K \u00b7 71 - ELLIS",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0020 L \u00b7 93 - GREGG",
+      "n_segments": 4
+    },
+    {
+      "key": "FM2514 L \u00b7 43 - COLLIN",
+      "n_segments": 4
+    },
+    {
+      "key": "FM2514 R \u00b7 43 - COLLIN",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0503 L \u00b7 92 - GRAYSON",
+      "n_segments": 4
+    },
+    {
+      "key": "SS0503 R \u00b7 92 - GRAYSON",
+      "n_segments": 4
+    },
+    {
+      "key": "BS0114LK \u00b7 220 - TARRANT",
+      "n_segments": 4
+    },
+    {
+      "key": "FM3345 L \u00b7 80 - FORT BEND",
+      "n_segments": 4
+    },
+    {
+      "key": "FM3345 R \u00b7 80 - FORT BEND",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0242 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0332 R \u00b7 20 - BRAZORIA",
+      "n_segments": 4
+    },
+    {
+      "key": "UA0090 X \u00b7 102 - HARRIS",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0528 K \u00b7 20 - BRAZORIA",
+      "n_segments": 4
+    },
+    {
+      "key": "FM1764 A \u00b7 85 - GALVESTON",
+      "n_segments": 4
+    },
+    {
+      "key": "FM1764 X \u00b7 85 - GALVESTON",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0064 K \u00b7 201 - RUSK",
+      "n_segments": 4
+    },
+    {
+      "key": "IH0010 X \u00b7 237 - WALLER",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0521 L \u00b7 102 - HARRIS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0327 L \u00b7 101 - HARDIN",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0327 R \u00b7 101 - HARDIN",
+      "n_segments": 4
+    },
+    {
+      "key": "BS0146DK \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0073 L \u00b7 36 - CHAMBERS",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0045FL \u00b7 175 - NAVARRO",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0359 L \u00b7 237 - WALLER",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0359 R \u00b7 237 - WALLER",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0027UR \u00b7 96 - HALE",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0027UL \u00b7 96 - HALE",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0731 L \u00b7 127 - JOHNSON",
+      "n_segments": 3
+    },
+    {
+      "key": "US0290 X \u00b7 237 - WALLER",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0045JK \u00b7 57 - DALLAS",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0762 K \u00b7 80 - FORT BEND",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0179 K \u00b7 82 - FREESTONE",
+      "n_segments": 3
+    },
+    {
+      "key": "IH0345 L \u00b7 57 - DALLAS",
+      "n_segments": 3
+    },
+    {
+      "key": "IH0345 R \u00b7 57 - DALLAS",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0001 L \u00b7 246 - WILLIAMSON",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0001 R \u00b7 246 - WILLIAMSON",
+      "n_segments": 3
+    },
+    {
+      "key": "SS0527 R \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0982 K \u00b7 43 - COLLIN",
+      "n_segments": 3
+    },
+    {
+      "key": "IH0069WX \u00b7 240 - WEBB",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0375 A \u00b7 72 - EL PASO",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0375 X \u00b7 72 - EL PASO",
+      "n_segments": 3
+    },
+    {
+      "key": "IH0035 L \u00b7 15 - BEXAR",
+      "n_segments": 3
+    },
+    {
+      "key": "IH0035 R \u00b7 227 - TRAVIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0101 K \u00b7 249 - WISE",
+      "n_segments": 3
+    },
+    {
+      "key": "BS0078EK \u00b7 43 - COLLIN",
+      "n_segments": 3
+    },
+    {
+      "key": "PA1814 L \u00b7 61 - DENTON",
+      "n_segments": 3
+    },
+    {
+      "key": "PA1814 R \u00b7 61 - DENTON",
+      "n_segments": 3
+    },
+    {
+      "key": "US0069 R \u00b7 117 - HUNT",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0740 K \u00b7 130 - KAUFMAN",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0731 R \u00b7 220 - TARRANT",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0731 L \u00b7 220 - TARRANT",
+      "n_segments": 3
+    },
+    {
+      "key": "US0059 K \u00b7 103 - HARRISON",
+      "n_segments": 3
+    },
+    {
+      "key": "BU0287FL \u00b7 244 - WILBARGER",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0335 K \u00b7 188 - POTTER",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0020EK \u00b7 69 - ECTOR",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0289 X \u00b7 152 - LUBBOCK",
+      "n_segments": 3
+    },
+    {
+      "key": "US0060 R \u00b7 188 - POTTER",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0020EL \u00b7 165 - MIDLAND",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0020ER \u00b7 165 - MIDLAND",
+      "n_segments": 3
+    },
+    {
+      "key": "US0079 L \u00b7 183 - PANOLA",
+      "n_segments": 3
+    },
+    {
+      "key": "US0079 R \u00b7 183 - PANOLA",
+      "n_segments": 3
+    },
+    {
+      "key": "US0062 A \u00b7 152 - LUBBOCK",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0020 L \u00b7 72 - EL PASO",
+      "n_segments": 3
+    },
+    {
+      "key": "BI0020KK \u00b7 168 - MITCHELL",
+      "n_segments": 3
+    },
+    {
+      "key": "IH0035 A \u00b7 110 - HILL",
+      "n_segments": 3
+    },
+    {
+      "key": "BS0006RL \u00b7 21 - BRAZOS",
+      "n_segments": 3
+    },
+    {
+      "key": "BS0006RR \u00b7 21 - BRAZOS",
+      "n_segments": 3
+    },
+    {
+      "key": "SS0380 K \u00b7 124 - JEFFERSON",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0249 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 3
+    },
+    {
+      "key": "FM1098 K \u00b7 237 - WALLER",
+      "n_segments": 3
+    },
+    {
+      "key": "US0287 A \u00b7 220 - TARRANT",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0526 L \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SS0548 R \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SS0548 L \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0124 L \u00b7 36 - CHAMBERS",
+      "n_segments": 3
+    },
+    {
+      "key": "US0287 R \u00b7 127 - JOHNSON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0865 L \u00b7 20 - BRAZORIA",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0865 R \u00b7 20 - BRAZORIA",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0087 L \u00b7 181 - ORANGE",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0087 R \u00b7 181 - ORANGE",
+      "n_segments": 3
+    },
+    {
+      "key": "FM2218 L \u00b7 80 - FORT BEND",
+      "n_segments": 3
+    },
+    {
+      "key": "FM2218 R \u00b7 80 - FORT BEND",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0087 R \u00b7 124 - JEFFERSON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM3479 K \u00b7 220 - TARRANT",
+      "n_segments": 3
+    },
+    {
+      "key": "PA0205 L \u00b7 220 - TARRANT",
+      "n_segments": 3
+    },
+    {
+      "key": "PA0205 R \u00b7 220 - TARRANT",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0544 L \u00b7 61 - DENTON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0544 R \u00b7 61 - DENTON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0813 K \u00b7 71 - ELLIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0183 R \u00b7 57 - DALLAS",
+      "n_segments": 3
+    },
+    {
+      "key": "FM3038 L \u00b7 43 - COLLIN",
+      "n_segments": 3
+    },
+    {
+      "key": "FM3038 R \u00b7 43 - COLLIN",
+      "n_segments": 3
+    },
+    {
+      "key": "SS0359 L \u00b7 43 - COLLIN",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0646 L \u00b7 85 - GALVESTON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0646 R \u00b7 85 - GALVESTON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0120 K \u00b7 92 - GRAYSON",
+      "n_segments": 3
+    },
+    {
+      "key": "SL0442 K \u00b7 147 - LIMESTONE",
+      "n_segments": 3
+    },
+    {
+      "key": "US0082 L \u00b7 49 - COOKE",
+      "n_segments": 3
+    },
+    {
+      "key": "US0082 R \u00b7 49 - COOKE",
+      "n_segments": 3
+    },
+    {
+      "key": "US0281 K \u00b7 149 - LIVE OAK",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0036 K \u00b7 80 - FORT BEND",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0021 L \u00b7 21 - BRAZOS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0021 R \u00b7 21 - BRAZOS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0180 R \u00b7 57 - DALLAS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0071 K \u00b7 76 - FAYETTE",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0011 K \u00b7 113 - HOPKINS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0332 L \u00b7 20 - BRAZORIA",
+      "n_segments": 3
+    },
+    {
+      "key": "UA0090 A \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0036 L \u00b7 20 - BRAZORIA",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0036 R \u00b7 20 - BRAZORIA",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0270 K \u00b7 85 - GALVESTON",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0099 A \u00b7 102 - HARRIS",
+      "n_segments": 3
+    },
+    {
+      "key": "SH0105 K \u00b7 146 - LIBERTY",
+      "n_segments": 3
+    },
+    {
+      "key": "FM1130 K \u00b7 181 - ORANGE",
+      "n_segments": 3
+    },
+    {
+      "key": "US0082 K \u00b7 19 - BOWIE",
+      "n_segments": 3
+    },
+    {
+      "key": "FM1876 L \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1876 R \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "BI0045GK \u00b7 71 - ELLIS",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1092 K \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0326 R \u00b7 152 - LUBBOCK",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0148 K \u00b7 130 - KAUFMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0073 R \u00b7 36 - CHAMBERS",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0326 L \u00b7 152 - LUBBOCK",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0366 L \u00b7 124 - JEFFERSON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0659 K \u00b7 72 - EL PASO",
+      "n_segments": 2
+    },
+    {
+      "key": "SL0484 R \u00b7 161 - MCLENNAN",
+      "n_segments": 2
+    },
+    {
+      "key": "BI0045FR \u00b7 175 - NAVARRO",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0110 L \u00b7 72 - EL PASO",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0110 R \u00b7 72 - EL PASO",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0299 L \u00b7 161 - MCLENNAN",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0270 K \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0527 L \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "BI0040HR \u00b7 91 - GRAY",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0171 K \u00b7 243 - WICHITA",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0399 L \u00b7 43 - COLLIN",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0399 R \u00b7 43 - COLLIN",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0360 R \u00b7 80 - FORT BEND",
+      "n_segments": 2
+    },
+    {
+      "key": "US0059 X \u00b7 204 - SAN JACINTO",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0410 L \u00b7 15 - BEXAR",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0410 R \u00b7 15 - BEXAR",
+      "n_segments": 2
+    },
+    {
+      "key": "US0062 R \u00b7 72 - EL PASO",
+      "n_segments": 2
+    },
+    {
+      "key": "US0287 K \u00b7 211 - SHERMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0035 R \u00b7 142 - LA SALLE",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0035WA \u00b7 61 - DENTON",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0040 A \u00b7 188 - POTTER",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0069 L \u00b7 80 - FORT BEND",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0069 R \u00b7 80 - FORT BEND",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0035 R \u00b7 15 - BEXAR",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0447 L \u00b7 243 - WICHITA",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0447 R \u00b7 243 - WICHITA",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0045 X \u00b7 82 - FREESTONE",
+      "n_segments": 2
+    },
+    {
+      "key": "US0069 K \u00b7 92 - GRAYSON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0091 R \u00b7 92 - GRAYSON",
+      "n_segments": 2
+    },
+    {
+      "key": "US0287 K \u00b7 97 - HALL",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0019 K \u00b7 139 - LAMAR",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0019 R \u00b7 60 - DELTA",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0045 A \u00b7 175 - NAVARRO",
+      "n_segments": 2
+    },
+    {
+      "key": "PA0211 R \u00b7 220 - TARRANT",
+      "n_segments": 2
+    },
+    {
+      "key": "PA0211 L \u00b7 220 - TARRANT",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0063 K \u00b7 93 - GREGG",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0043 K \u00b7 103 - HARRISON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0174 L \u00b7 127 - JOHNSON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0174 R \u00b7 127 - JOHNSON",
+      "n_segments": 2
+    },
+    {
+      "key": "US0271 K \u00b7 230 - UPSHUR",
+      "n_segments": 2
+    },
+    {
+      "key": "BU0287FR \u00b7 244 - WILBARGER",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0198 K \u00b7 130 - KAUFMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "US0060 L \u00b7 188 - POTTER",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0013 K \u00b7 201 - RUSK",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0020 R \u00b7 72 - EL PASO",
+      "n_segments": 2
+    },
+    {
+      "key": "BU0077LA \u00b7 161 - MCLENNAN",
+      "n_segments": 2
+    },
+    {
+      "key": "US0084 K \u00b7 86 - GARZA",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0225 K \u00b7 174 - NACOGDOCHES",
+      "n_segments": 2
+    },
+    {
+      "key": "US0059 L \u00b7 3 - ANGELINA",
+      "n_segments": 2
+    },
+    {
+      "key": "US0287 R \u00b7 169 - MONTAGUE",
+      "n_segments": 2
+    },
+    {
+      "key": "US0069 L \u00b7 3 - ANGELINA",
+      "n_segments": 2
+    },
+    {
+      "key": "US0069 R \u00b7 3 - ANGELINA",
+      "n_segments": 2
+    },
+    {
+      "key": "US0090 K \u00b7 233 - VAL VERDE",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2347 L \u00b7 21 - BRAZOS",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2347 R \u00b7 21 - BRAZOS",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0163 K \u00b7 146 - LIBERTY",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1155 K \u00b7 239 - WASHINGTON",
+      "n_segments": 2
+    },
+    {
+      "key": "US0079 K \u00b7 145 - LEON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2978 K \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1442 K \u00b7 181 - ORANGE",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1774 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 2
+    },
+    {
+      "key": "US0287 X \u00b7 220 - TARRANT",
+      "n_segments": 2
+    },
+    {
+      "key": "US0059 A \u00b7 170 - MONTGOMERY",
+      "n_segments": 2
+    },
+    {
+      "key": "US0287 L \u00b7 127 - JOHNSON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0723 K \u00b7 80 - FORT BEND",
+      "n_segments": 2
+    },
+    {
+      "key": "BS0146EL \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "BS0146ER \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0359 L \u00b7 80 - FORT BEND",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0359 R \u00b7 80 - FORT BEND",
+      "n_segments": 2
+    },
+    {
+      "key": "SL0047 K \u00b7 39 - CLAY",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0146 K \u00b7 85 - GALVESTON",
+      "n_segments": 2
+    },
+    {
+      "key": "BS0288BR \u00b7 20 - BRAZORIA",
+      "n_segments": 2
+    },
+    {
+      "key": "BS0288BL \u00b7 20 - BRAZORIA",
+      "n_segments": 2
+    },
+    {
+      "key": "US0082 R \u00b7 39 - CLAY",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2004 L \u00b7 20 - BRAZORIA",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2004 R \u00b7 20 - BRAZORIA",
+      "n_segments": 2
+    },
+    {
+      "key": "US0287 K \u00b7 175 - NAVARRO",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0170 L \u00b7 61 - DENTON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0170 R \u00b7 61 - DENTON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM3504 K \u00b7 61 - DENTON",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0482 R \u00b7 57 - DALLAS",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0183 X \u00b7 57 - DALLAS",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0352 K \u00b7 57 - DALLAS",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0114 A \u00b7 61 - DENTON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0114 X \u00b7 61 - DENTON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0006 X \u00b7 21 - BRAZOS",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0557 R \u00b7 130 - KAUFMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "SS0557 L \u00b7 130 - KAUFMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0010 A \u00b7 28 - CALDWELL",
+      "n_segments": 2
+    },
+    {
+      "key": "US0082 A \u00b7 92 - GRAYSON",
+      "n_segments": 2
+    },
+    {
+      "key": "US0175 R \u00b7 108 - HENDERSON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0180 K \u00b7 57 - DALLAS",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0006 R \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "US0080 L \u00b7 130 - KAUFMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "US0080 R \u00b7 130 - KAUFMAN",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0036 K \u00b7 20 - BRAZORIA",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2351 R \u00b7 85 - GALVESTON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM2351 L \u00b7 85 - GALVESTON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1485 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0099 X \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0275 L \u00b7 85 - GALVESTON",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0275 R \u00b7 85 - GALVESTON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM0521 K \u00b7 102 - HARRIS",
+      "n_segments": 2
+    },
+    {
+      "key": "SH0073 K \u00b7 181 - ORANGE",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0010 A \u00b7 36 - CHAMBERS",
+      "n_segments": 2
+    },
+    {
+      "key": "IH0010 X \u00b7 36 - CHAMBERS",
+      "n_segments": 2
+    },
+    {
+      "key": "US0090 K \u00b7 146 - LIBERTY",
+      "n_segments": 2
+    },
+    {
+      "key": "US0090 L \u00b7 124 - JEFFERSON",
+      "n_segments": 2
+    },
+    {
+      "key": "FM1006 K \u00b7 181 - ORANGE",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1942 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2553 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0529 K \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0090UK \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0067MR \u00b7 127 - JOHNSON",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0110 X \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0256 K \u00b7 1 - ANDERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0366 R \u00b7 124 - JEFFERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0359 K \u00b7 237 - WALLER",
+      "n_segments": 1
+    },
+    {
+      "key": "FM3041 K \u00b7 175 - NAVARRO",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0049 K \u00b7 225 - TITUS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0299 R \u00b7 161 - MCLENNAN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0259 K \u00b7 172 - MORRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM3129 K \u00b7 34 - CASS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0186 K \u00b7 109 - HIDALGO",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0488 K \u00b7 244 - WILBARGER",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0107 K \u00b7 109 - HIDALGO",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0069JL \u00b7 3 - ANGELINA",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0069JR \u00b7 3 - ANGELINA",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0158 K \u00b7 21 - BRAZOS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2234 K \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "BS0249BK \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2812 K \u00b7 109 - HIDALGO",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0550 R \u00b7 31 - CAMERON",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0468 K \u00b7 188 - POTTER",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0430 K \u00b7 140 - LAMB",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0600 K \u00b7 109 - HIDALGO",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0297 R \u00b7 233 - VAL VERDE",
+      "n_segments": 1
+    },
+    {
+      "key": "US0290 A \u00b7 237 - WALLER",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0121 A \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0755 K \u00b7 24 - BROOKS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM3521 K \u00b7 3 - ANGELINA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0059 A \u00b7 204 - SAN JACINTO",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1016 K \u00b7 109 - HIDALGO",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0571 L \u00b7 201 - RUSK",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0572 K \u00b7 183 - PANOLA",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0050 K \u00b7 75 - FANNIN",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0069WA \u00b7 240 - WEBB",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0069WL \u00b7 240 - WEBB",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0069WR \u00b7 240 - WEBB",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0030 A \u00b7 184 - PARKER",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0035 X \u00b7 240 - WEBB",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0178 X \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0178 A \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1905 K \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2741 K \u00b7 148 - LIPSCOMB",
+      "n_segments": 1
+    },
+    {
+      "key": "US0062 L \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1281 K \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0037 L \u00b7 205 - SAN PATRICIO",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0635 L \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0635 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0040 A \u00b7 180 - OLDHAM",
+      "n_segments": 1
+    },
+    {
+      "key": "US0087 L \u00b7 56 - DALLAM",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0040 X \u00b7 188 - POTTER",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0035WR \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0027 R \u00b7 188 - POTTER",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0069 L \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0325 R \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0277 A \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0277 X \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0281 X \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0281 K \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0148 K \u00b7 39 - CLAY",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0369 L \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0369 R \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0091 L \u00b7 92 - GRAYSON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0051 R \u00b7 49 - COOKE",
+      "n_segments": 1
+    },
+    {
+      "key": "US0087 K \u00b7 219 - SWISHER",
+      "n_segments": 1
+    },
+    {
+      "key": "US0087 L \u00b7 152 - LUBBOCK",
+      "n_segments": 1
+    },
+    {
+      "key": "US0087 R \u00b7 152 - LUBBOCK",
+      "n_segments": 1
+    },
+    {
+      "key": "US0087 R \u00b7 219 - SWISHER",
+      "n_segments": 1
+    },
+    {
+      "key": "US0067 R \u00b7 19 - BOWIE",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0594 K \u00b7 19 - BOWIE",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0151 K \u00b7 92 - GRAYSON",
+      "n_segments": 1
+    },
+    {
+      "key": "US0059 K \u00b7 19 - BOWIE",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0079 L \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0079 R \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0030 A \u00b7 19 - BOWIE",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0078 K \u00b7 75 - FANNIN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0287 L \u00b7 38 - CHILDRESS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1402 K \u00b7 225 - TITUS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0185 K \u00b7 225 - TITUS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0086 K \u00b7 185 - PARMER",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2181 K \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0079 K \u00b7 5 - ARCHER",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0075 K \u00b7 43 - COLLIN",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0399 X \u00b7 43 - COLLIN",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0289 K \u00b7 43 - COLLIN",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0423 L \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0078 K \u00b7 43 - COLLIN",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0740 K \u00b7 199 - ROCKWALL",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0097 L \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0097 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0986 K \u00b7 130 - KAUFMAN",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0341 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "US0259 K \u00b7 230 - UPSHUR",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0171 K \u00b7 184 - PARKER",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0465 L \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0465 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0205 K \u00b7 130 - KAUFMAN",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0300 K \u00b7 230 - UPSHUR",
+      "n_segments": 1
+    },
+    {
+      "key": "US0067 K \u00b7 225 - TITUS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0377 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "US0377 L \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0156 K \u00b7 103 - HARRISON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0342 K \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0360 K \u00b7 71 - ELLIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0019 K \u00b7 234 - VAN ZANDT",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0660 K \u00b7 71 - ELLIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2255 K \u00b7 152 - LUBBOCK",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0152 K \u00b7 171 - MOORE",
+      "n_segments": 1
+    },
+    {
+      "key": "BI0045GL \u00b7 71 - ELLIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0114 R \u00b7 152 - LUBBOCK",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0437 K \u00b7 71 - ELLIS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0060 L \u00b7 191 - RANDALL",
+      "n_segments": 1
+    },
+    {
+      "key": "US0060 R \u00b7 191 - RANDALL",
+      "n_segments": 1
+    },
+    {
+      "key": "US0082 A \u00b7 152 - LUBBOCK",
+      "n_segments": 1
+    },
+    {
+      "key": "US0287 A \u00b7 243 - WICHITA",
+      "n_segments": 1
+    },
+    {
+      "key": "FM3255 L \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "FM3255 R \u00b7 72 - EL PASO",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0055 K \u00b7 175 - NAVARRO",
+      "n_segments": 1
+    },
+    {
+      "key": "US0259 K \u00b7 201 - RUSK",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0579 R \u00b7 110 - HILL",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0579 L \u00b7 110 - HILL",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0155 K \u00b7 212 - SMITH",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0349 R \u00b7 165 - MIDLAND",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0349 L \u00b7 165 - MIDLAND",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0155 K \u00b7 1 - ANDERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0077LX \u00b7 161 - MCLENNAN",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0210 K \u00b7 3 - ANGELINA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0059 X \u00b7 3 - ANGELINA",
+      "n_segments": 1
+    },
+    {
+      "key": "US0059 R \u00b7 3 - ANGELINA",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0035EA \u00b7 71 - ELLIS",
+      "n_segments": 1
+    },
+    {
+      "key": "BI0020RK \u00b7 221 - TAYLOR",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0326 L \u00b7 101 - HARDIN",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0326 R \u00b7 101 - HARDIN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0077 K \u00b7 166 - MILAM",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1472 L \u00b7 240 - WEBB",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1472 R \u00b7 240 - WEBB",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0090YL \u00b7 181 - ORANGE",
+      "n_segments": 1
+    },
+    {
+      "key": "RM0169 K \u00b7 189 - PRESIDIO",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0321 R \u00b7 146 - LIBERTY",
+      "n_segments": 1
+    },
+    {
+      "key": "BU0067MK \u00b7 127 - JOHNSON",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0494 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2100 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0075 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0261 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0005 A \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0005 X \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0527 X \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0527 A \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "RM0335 K \u00b7 193 - REAL",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0548 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0062 K \u00b7 38 - CHILDRESS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0865 L \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0865 R \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0059 X \u00b7 170 - MONTGOMERY",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1663 L \u00b7 36 - CHAMBERS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1663 R \u00b7 36 - CHAMBERS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0010 K \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0540 K \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0035 A \u00b7 20 - BRAZORIA",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0035 X \u00b7 20 - BRAZORIA",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0146 A \u00b7 85 - GALVESTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0146 X \u00b7 85 - GALVESTON",
+      "n_segments": 1
+    },
+    {
+      "key": "US0082 X \u00b7 39 - CLAY",
+      "n_segments": 1
+    },
+    {
+      "key": "US0082 L \u00b7 39 - CLAY",
+      "n_segments": 1
+    },
+    {
+      "key": "FM3479 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0004 R \u00b7 31 - CAMERON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1515 K \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0048 K \u00b7 31 - CAMERON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0426 K \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0183 K \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0010 R \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0010 L \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0407 K \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0356 A \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0026 K \u00b7 220 - TARRANT",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0482 A \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0482 X \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0066 K \u00b7 71 - ELLIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0366 A \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0114 K \u00b7 61 - DENTON",
+      "n_segments": 1
+    },
+    {
+      "key": "US0377 K \u00b7 70 - EDWARDS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0066 K \u00b7 57 - DALLAS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0006 A \u00b7 21 - BRAZOS",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0557 X \u00b7 130 - KAUFMAN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0281 R \u00b7 149 - LIVE OAK",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0006 K \u00b7 237 - WALLER",
+      "n_segments": 1
+    },
+    {
+      "key": "US0082 X \u00b7 92 - GRAYSON",
+      "n_segments": 1
+    },
+    {
+      "key": "US0175 A \u00b7 130 - KAUFMAN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0175 X \u00b7 130 - KAUFMAN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0175 L \u00b7 108 - HENDERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0360 L \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0031 K \u00b7 108 - HENDERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM1093 K \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "US0082 A \u00b7 75 - FANNIN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0082 X \u00b7 75 - FANNIN",
+      "n_segments": 1
+    },
+    {
+      "key": "FM2920 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0006 L \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "UA0090 X \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "FS0525 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0077 R \u00b7 137 - KLEBERG",
+      "n_segments": 1
+    },
+    {
+      "key": "US0084 A \u00b7 161 - MCLENNAN",
+      "n_segments": 1
+    },
+    {
+      "key": "US0084 X \u00b7 161 - MCLENNAN",
+      "n_segments": 1
+    },
+    {
+      "key": "SL0008 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "UA0090 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0521 R \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0006 L \u00b7 85 - GALVESTON",
+      "n_segments": 1
+    },
+    {
+      "key": "IH0010 X \u00b7 80 - FORT BEND",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0073 R \u00b7 124 - JEFFERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0105 K \u00b7 101 - HARDIN",
+      "n_segments": 1
+    },
+    {
+      "key": "SS0215 K \u00b7 124 - JEFFERSON",
+      "n_segments": 1
+    },
+    {
+      "key": "FM0408 K \u00b7 181 - ORANGE",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0012 K \u00b7 176 - NEWTON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0073 L \u00b7 181 - ORANGE",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0099 K \u00b7 36 - CHAMBERS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0077 L \u00b7 31 - CAMERON",
+      "n_segments": 1
+    },
+    {
+      "key": "US0090 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    }
+  ]
+}

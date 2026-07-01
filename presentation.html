@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GeoChron → PMIS: Adapting the Paper</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #1b1e24; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  #deck { height: 100vh; overflow: hidden; position: relative; }
+  .slide {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; justify-content: center;
+    padding: 64px 88px; color: #eaeaea;
+  }
+  .slide.active { display: flex; }
+  .slide h1 { font-size: 40px; margin: 0 0 28px; color: #fff; letter-spacing: -0.01em; }
+  .slide h2 { font-size: 22px; margin: 28px 0 10px; color: #7fd1ff; }
+  .slide p, .slide li { font-size: 19px; line-height: 1.5; color: #cfd3da; }
+  .kicker { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; }
+  ul { margin: 6px 0 6px 0; padding-left: 22px; }
+  .cols { display: flex; gap: 40px; }
+  .col { flex: 1; }
+  .card {
+    background: #262a33; border: 1px solid #383d47; border-radius: 10px;
+    padding: 18px 22px; margin-bottom: 14px;
+  }
+  .card.paper { border-left: 4px solid #7fd1ff; }
+  .card.adapt { border-left: 4px solid #7fffa0; }
+  .card.diff  { border-left: 4px solid #ff9d7f; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+  }
+  .tag.paper { background: #17323f; color: #7fd1ff; }
+  .tag.adapt { background: #1a3324; color: #7fffa0; }
+  .tag.diff  { background: #3a2318; color: #ff9d7f; }
+  code { background: #11141a; padding: 2px 6px; border-radius: 4px; color: #f7d060; font-size: 0.9em; }
+  table { width: 100%; border-collapse: collapse; font-size: 17px; }
+  table th, table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #383d47; }
+  table th { color: #7fd1ff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .nav {
+    position: fixed; bottom: 22px; right: 32px; display: flex; gap: 10px; align-items: center;
+    color: #6b7280; font-size: 13px; z-index: 10;
+  }
+  .nav button {
+    background: #262a33; border: 1px solid #383d47; color: #eaeaea; border-radius: 6px;
+    padding: 6px 14px; cursor: pointer; font-size: 14px;
+  }
+  .nav button:hover { background: #333846; }
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: #7fd1ff; transition: width .2s; z-index: 10; }
+  .step-list li { margin-bottom: 6px; }
+  .before-after { display: flex; gap: 24px; }
+  .ba-box { flex: 1; padding: 16px 20px; border-radius: 8px; }
+  .ba-before { background: #2f2119; border: 1px solid #4a3524; }
+  .ba-after { background: #1b2f22; border: 1px solid #244a34; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div id="deck">
+
+  <section class="slide active">
+    <div class="kicker">GeoChron × Texas PMIS</div>
+    <h1>Adapting a Storyline visualization paper to real pavement data</h1>
+    <p>What the paper proposed, what we kept, what we had to change, and why —
+       a walkthrough of the cohort-based pavement trajectory pipeline.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">1 · The paper's core idea</div>
+    <h1>GeoChron's Storyline framework</h1>
+    <div class="card paper"><span class="tag paper">Paper</span>
+      <p>Treat each spatiotemporal (ST) series (an entity over time) as a "character," and a group of
+      series moving together as a Storyline <b>session</b> — the same analogy classic Storyline
+      visualizations use for characters interacting in a narrative.</p>
+    </div>
+    <div class="card paper"><span class="tag paper">Paper</span>
+      <p>Pipeline per time slice: (1) split time into slices, (2) correlate every pair of series within
+      a slice, (3) intersect correlation with spatial proximity to build a relation network,
+      (4) run <b>Louvain community detection</b> on that network — each community = one session,
+      (5) lay sessions out with a StoryFlow-style Storyline layout, (6) drill down with an
+      <b>EvoLens</b> lens showing per-entity trends and a normalized "trend motif."</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">2 · Our adaptation target</div>
+    <h1>Texas PMIS pavement condition data</h1>
+    <div class="cols">
+      <div class="col">
+        <h2>The paper's data</h2>
+        <ul>
+          <li>Dense, regularly-sampled ST series</li>
+          <li>Clean single-day time slices</li>
+          <li>Coordinates available for every entity</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h2>Our data (PMIS)</h2>
+        <ul>
+          <li>~14,810 half-mile road segments, 1996–2024</li>
+          <li>Annual condition scores, <b>sparse and gappy</b> — no daily sampling</li>
+          <li><code>begin_dfo</code>/<code>end_dfo</code> coordinates empty for our data</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:20px;">Same underlying idea (series that move together over time), a very
+    different data reality — this drove every adaptation decision that follows.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">3 · Adaptation: time slice → sliding window</div>
+    <h1>Step 4: multi-year sliding windows replace single-day slices</h1>
+    <div class="before-after">
+      <div class="ba-box ba-before">
+        <div class="tag diff">Paper</div>
+        <p>A time slice is a single day; a time window wraps three consecutive slices for
+        cross-slice smoothing.</p>
+      </div>
+      <div class="ba-box ba-after">
+        <div class="tag adapt">Ours</div>
+        <p>Annual sampling can't support a single-day slice. We use one <b>W=5-year sliding
+        window</b>, stepped by 1 year (1996–2024 → <b>25 windows</b>). The window overlap gives us
+        the paper's cross-slice smoothing "for free," so we don't need a separate wrapping step.</p>
+      </div>
+    </div>
+    <p style="margin-top:16px; color:#9aa1ad; font-size:16px;">Called out in <code>procedure.md</code>
+    as the one non-negotiable adaptation: without it, our sparse annual data has no meaningful
+    "slice" to correlate within.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">4 · Adaptation: gaps</div>
+    <h1>Step 3: preserve gaps, never interpolate</h1>
+    <div class="card diff"><span class="tag diff">Different from a naive port</span>
+      <p>With sparse annual sampling, an interpolated point can be a large fraction of a segment's
+      signal — enough to <b>manufacture a trend the pavement never had</b>.</p>
+    </div>
+    <div class="card adapt"><span class="tag adapt">Our rule</span>
+      <p>Leave missing years empty in the section×year matrix. Handle gaps only where they belong —
+      at correlation time (pairwise-complete Pearson, minimum overlap required) — never by
+      fabricating values.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">5 · Adaptation: proximity without coordinates</div>
+    <h1>Step 8–9: (roadbed, county) instead of geographic radius</h1>
+    <table>
+      <tr><th>Paper</th><th>Ours</th></tr>
+      <tr><td>Same highway within a reference-marker distance, OR same district / within a
+      haversine radius (cross-route corridor effects)</td>
+      <td>Same <b>roadbed AND county</b> — a proxy, since real lat/long isn't populated in this
+      dataset</td></tr>
+    </table>
+    <p style="margin-top:20px;">This is the biggest known simplification in the whole pipeline: it
+    means cohorts can only ever be found <i>within</i> one highway/county pair — a session can never
+    span two different highways, even ones physically close together. Flagged in
+    <code>PROGRESS.md</code> as the first thing to revisit if real coordinates become available.</p>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">6 · Straight reuse (no change needed)</div>
+    <h1>What we kept exactly as the paper describes</h1>
+    <div class="card paper"><span class="tag paper">Kept</span>
+      <p><b>Step 6–7 — correlation + thresholding.</b> Pairwise-complete Pearson correlation per
+      window, reduced to a binary yes/no edge at <code>THR=0.7</code>, exactly like the paper's
+      approach (graded weights aren't used for the community-detection decision).</p>
+    </div>
+    <div class="card paper"><span class="tag paper">Kept</span>
+      <p><b>Step 10 — Louvain community detection.</b> Run on the intersection of correlation and
+      proximity edges. Louvain itself needs no pre-set cluster count, is location-blind, and only
+      produces location-confined communities because cross-location edges don't exist post-filter —
+      identical mechanism to the paper.</p>
+    </div>
+    <div class="card paper"><span class="tag paper">Kept</span>
+      <p><b>Step 11–12 — session filtering + cross-window tracking.</b> Drop small sessions unless
+      they feed a large neighbor-window session; link sessions window-to-window by largest membership
+      overlap — this produces the Storyline's continuity curves, same as the paper.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">7 · Adaptation: normalization, deferred</div>
+    <h1>Step 5: skipped for correlation, used later for EvoLens</h1>
+    <div class="card adapt"><span class="tag adapt">Decision</span>
+      <p>Pearson correlation is provably invariant to shift/scale (z-normalizing a series first
+      doesn't change its Pearson correlation with anything). So Step 5's normalization is
+      <b>mathematically redundant</b> for the correlation math — we skip it there and use raw scores,
+      matching what the paper's underlying math already implies.</p>
+    </div>
+    <div class="card adapt"><span class="tag adapt">Where it's actually used</span>
+      <p>Normalization (z-score) is applied live, on demand, in the <b>EvoLens trend motif</b> — where
+      the paper genuinely needs it, to compare a session's "shape" independent of absolute level.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">8 · Visualization — Level 1</div>
+    <h1>Storyline rendering: window = span, not a point</h1>
+    <div class="before-after">
+      <div class="ba-box ba-before">
+        <div class="tag diff">Early prototype (wrong)</div>
+        <p>Each window drawn as a single point; single-window memberships rendered as meaningless
+        dots; anchor/interpolation logic produced artificial spikes shooting into empty space.</p>
+      </div>
+      <div class="ba-box ba-after">
+        <div class="tag adapt">Current, paper-faithful</div>
+        <p>Each window is a full-width bar (a span); windows are connected by a <b>thinner Bézier
+        curve</b>. Layout uses per-window <b>barycenter-sweep ordering</b> (6 forward/backward
+        sweeps) with no anchor points at all — directly matching how the paper's Storyline curves
+        pass continuously between session bundles.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">9 · Visualization — engineering, not paper-driven</div>
+    <h1>WebGL rendering (a practical addition, not from the paper)</h1>
+    <div class="card diff"><span class="tag diff">Not in the paper</span>
+      <p>The paper doesn't specify a rendering technology. Our first D3/SVG implementation became
+      too slow at ~14,810 segments × 25 windows.</p>
+    </div>
+    <div class="card adapt"><span class="tag adapt">Our addition</span>
+      <p>Hybrid renderer: <b>WebGL</b> for the bulk bar/connector geometry (batched, chunked draw
+      calls to dodge a silent GPU driver limit above ~millions of vertices per call), plus a
+      transparent <b>2D canvas overlay</b> for text, hover highlighting, and labels.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">10 · Visualization — Level 2</div>
+    <h1>EvoLens drill-down: brush-select, not click</h1>
+    <div class="card paper"><span class="tag paper">Kept, verified against paper.txt</span>
+      <p>The paper's actual mechanism: <b>brush a rectangle</b> on the Storyline to select a time
+      period + sessions, which pops open a lens with (a) per-entity line charts of the real
+      (un-windowed) trend, and (b) a <b>trend motif</b> — z-score the values within the brushed
+      range, take the lower quartile / median / upper quartile, and shade the quartile band. We
+      initially built this as a click interaction; corrected to brush-select once verified against
+      the paper text.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">11 · Display-only fix</div>
+    <h1>Grouping re-keyed to (roadbed, county)</h1>
+    <p>Sessions were already correctly scoped to one (roadbed, county) pair (Step 8/9). But the
+    Storyline's visual bands were originally grouped by roadbed alone — so a highway passing
+    through several counties showed as one mixed band.</p>
+    <div class="card adapt"><span class="tag adapt">Fix</span>
+      <p>Re-keyed <code>export_storyline_data.py</code>'s band grouping to
+      <code>(roadbed, county)</code> tuples: 722 → <b>1,112 bands</b>, matching the actual constraint
+      sessions were already scoped to. No session/track validity changed — this only fixed the
+      display grouping to match data that was already correct.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">12 · Summary</div>
+    <h1>Same paper, different data reality</h1>
+    <table>
+      <tr><th>Kept exactly as the paper</th><th>Adapted for our data</th><th>Not in the paper (engineering)</th></tr>
+      <tr>
+        <td>Correlation → threshold → Louvain → session filter → cross-window tracking →
+        brush-select EvoLens → trend motif</td>
+        <td>Time slice → 5-yr sliding window · gaps preserved not interpolated · proximity via
+        (roadbed, county) proxy · normalization deferred to EvoLens</td>
+        <td>WebGL/canvas hybrid rendering · JSON data-export + static JS front-end architecture</td>
+      </tr>
+    </table>
+    <p style="margin-top:24px;">Open items: Step 13 (treatment-event detection), Step 14
+    (validation against ground truth), Step 15 (formal run-scope decision), the paper's linked
+    geographic map (blocked on missing coordinates), and independent confirmation of the
+    score-direction convention.</p>
+  </section>
+
+</div>
+<div class="nav">
+  <span id="counter">1 / 12</span>
+  <button id="prevBtn">← Prev</button>
+  <button id="nextBtn">Next →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll(".slide");
+  let idx = 0;
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle("active", i === idx));
+    document.getElementById("counter").textContent = `${idx + 1} / ${slides.length}`;
+    document.getElementById("progress").style.width = `${((idx + 1) / slides.length) * 100}%`;
+  }
+  function go(delta) {
+    idx = Math.max(0, Math.min(slides.length - 1, idx + delta));
+    render();
+  }
+  document.getElementById("prevBtn").addEventListener("click", () => go(-1));
+  document.getElementById("nextBtn").addEventListener("click", () => go(1));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === " ") go(1);
+    if (e.key === "ArrowLeft") go(-1);
+  });
+  render();
+</script>
+</body>
+</html>

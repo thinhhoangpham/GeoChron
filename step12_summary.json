@@ -1,0 +1,175 @@
+{
+  "ths": 5,
+  "n_windows": 25,
+  "n_transitions": 18717,
+  "pairs": [
+    {
+      "from_window": 0,
+      "to_window": 1,
+      "sessions_from": 380,
+      "linked": 378,
+      "ended": 2
+    },
+    {
+      "from_window": 1,
+      "to_window": 2,
+      "sessions_from": 569,
+      "linked": 525,
+      "ended": 44
+    },
+    {
+      "from_window": 2,
+      "to_window": 3,
+      "sessions_from": 632,
+      "linked": 559,
+      "ended": 73
+    },
+    {
+      "from_window": 3,
+      "to_window": 4,
+      "sessions_from": 729,
+      "linked": 611,
+      "ended": 118
+    },
+    {
+      "from_window": 4,
+      "to_window": 5,
+      "sessions_from": 813,
+      "linked": 677,
+      "ended": 136
+    },
+    {
+      "from_window": 5,
+      "to_window": 6,
+      "sessions_from": 1086,
+      "linked": 745,
+      "ended": 341
+    },
+    {
+      "from_window": 6,
+      "to_window": 7,
+      "sessions_from": 996,
+      "linked": 803,
+      "ended": 193
+    },
+    {
+      "from_window": 7,
+      "to_window": 8,
+      "sessions_from": 1369,
+      "linked": 1091,
+      "ended": 278
+    },
+    {
+      "from_window": 8,
+      "to_window": 9,
+      "sessions_from": 1007,
+      "linked": 803,
+      "ended": 204
+    },
+    {
+      "from_window": 9,
+      "to_window": 10,
+      "sessions_from": 1075,
+      "linked": 840,
+      "ended": 235
+    },
+    {
+      "from_window": 10,
+      "to_window": 11,
+      "sessions_from": 978,
+      "linked": 812,
+      "ended": 166
+    },
+    {
+      "from_window": 11,
+      "to_window": 12,
+      "sessions_from": 1145,
+      "linked": 914,
+      "ended": 231
+    },
+    {
+      "from_window": 12,
+      "to_window": 13,
+      "sessions_from": 1019,
+      "linked": 811,
+      "ended": 208
+    },
+    {
+      "from_window": 13,
+      "to_window": 14,
+      "sessions_from": 1334,
+      "linked": 859,
+      "ended": 475
+    },
+    {
+      "from_window": 14,
+      "to_window": 15,
+      "sessions_from": 1117,
+      "linked": 875,
+      "ended": 242
+    },
+    {
+      "from_window": 15,
+      "to_window": 16,
+      "sessions_from": 1013,
+      "linked": 821,
+      "ended": 192
+    },
+    {
+      "from_window": 16,
+      "to_window": 17,
+      "sessions_from": 1363,
+      "linked": 1209,
+      "ended": 154
+    },
+    {
+      "from_window": 17,
+      "to_window": 18,
+      "sessions_from": 1041,
+      "linked": 811,
+      "ended": 230
+    },
+    {
+      "from_window": 18,
+      "to_window": 19,
+      "sessions_from": 952,
+      "linked": 769,
+      "ended": 183
+    },
+    {
+      "from_window": 19,
+      "to_window": 20,
+      "sessions_from": 836,
+      "linked": 721,
+      "ended": 115
+    },
+    {
+      "from_window": 20,
+      "to_window": 21,
+      "sessions_from": 945,
+      "linked": 766,
+      "ended": 179
+    },
+    {
+      "from_window": 21,
+      "to_window": 22,
+      "sessions_from": 1115,
+      "linked": 885,
+      "ended": 230
+    },
+    {
+      "from_window": 22,
+      "to_window": 23,
+      "sessions_from": 1257,
+      "linked": 837,
+      "ended": 420
+    },
+    {
+      "from_window": 23,
+      "to_window": 24,
+      "sessions_from": 1014,
+      "linked": 595,
+      "ended": 419
+    }
+  ]
+}

@@ -1,0 +1,305 @@
+/* ---------- Base layout ---------- */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #fafafa;
+  color: #222;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+}
+
+/* ---------- Toolbar ---------- */
+#toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 8px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.ctl {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  color: #555;
+  position: relative;
+}
+
+.ctl > span {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 10px;
+  color: #888;
+}
+
+.ctl input[type="text"], .ctl select {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 220px;
+  background: #fff;
+}
+
+.ctl.slider input[type="range"] {
+  width: 160px;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.dropdown.hidden { display: none; }
+
+.dropdown-item {
+  padding: 5px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-item:hover, .dropdown-item.active {
+  background: #eef4ff;
+}
+
+.status {
+  font-size: 11px;
+  color: #888;
+  padding-top: 4px;
+}
+
+/* ---------- Scroll area / canvas ---------- */
+#scrollArea {
+  position: relative;
+  width: 100%;
+}
+
+#axis {
+  position: sticky;
+  top: 92px; /* sits below toolbar */
+  z-index: 40;
+  height: 34px;
+  background: #fafafa;
+  border-bottom: 1px solid #e3e3e3;
+  overflow: hidden; /* clips axisInner, which is translated to track horizontal scroll */
+}
+
+#axisInner {
+  position: relative;
+  height: 100%;
+}
+
+#axis .axis-label {
+  position: absolute;
+  top: 6px;
+  font-size: 10.5px;
+  color: #666;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* canvasWrap is the actual scrolling viewport (both axes). Its size is
+ * capped to the browser window, never to the full data extent — the data
+ * extent is instead represented by #canvasSpacer below, which is what
+ * creates the (potentially huge) native scrollbars. */
+#canvasWrap {
+  position: relative;
+  width: 100%;
+  overflow: auto;
+}
+
+#canvasSpacer {
+  position: relative; /* normal flow: establishes scrollWidth/scrollHeight */
+  pointer-events: none;
+}
+
+#storylineGLCanvas,
+#storylineCanvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* moved via transform on scroll to always cover canvasWrap's visible area */
+}
+
+/* WebGL canvas paints bars/connectors; the 2D canvas sits on top and is
+ * transparent so it only overlays labels/highlight without occluding it. */
+#storylineGLCanvas {
+  z-index: 1;
+}
+
+#storylineCanvas {
+  z-index: 2;
+}
+
+/* ---------- Tooltip ---------- */
+#tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: 5px;
+  max-width: 280px;
+  z-index: 100;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+}
+
+#tooltip.hidden { display: none; }
+
+#tooltip b { color: #ffd479; }
+
+/* ============================================================================
+ * EvoLens drill-down (evolens.js). Kept separate from the base Storyline
+ * styles above.
+ * ==========================================================================*/
+
+/* Brush hint shown when in "All roads" view (brushing disabled there) */
+.evolens-hint {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 20, 0.82);
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  z-index: 30;
+  pointer-events: none;
+}
+.evolens-hint.hidden { display: none; }
+
+/* In-progress brush rectangle (drag) */
+.evolens-brush-overlay {
+  position: absolute;
+  border: 1px dashed #2d5f8a;
+  background: rgba(45, 95, 138, 0.15);
+  pointer-events: none;
+  z-index: 20;
+}
+.evolens-brush-overlay.hidden { display: none; }
+
+/* Committed selection rectangle, shown while the EvoLens panel is open */
+.evolens-selection-overlay {
+  position: absolute;
+  border: 1.5px solid #2d5f8a;
+  background: rgba(45, 95, 138, 0.10);
+  pointer-events: none;
+  z-index: 20;
+}
+.evolens-selection-overlay.hidden { display: none; }
+
+/* Slide-in side panel (non-blocking: Storyline stays visible/usable) */
+.evolens-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 460px;
+  max-width: 92vw;
+  background: #ffffff;
+  border-left: 1px solid #ddd;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+  z-index: 200;
+  transform: translateX(100%);
+  transition: transform 0.22s ease-out;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+
+.evolens-panel.hidden { display: none; }
+.evolens-panel.open { transform: translateX(0); }
+
+.evolens-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.evolens-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+}
+
+.evolens-subtitle {
+  font-size: 12px;
+  color: #777;
+  margin-top: 2px;
+}
+
+.evolens-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #888;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.evolens-close:hover { color: #222; }
+
+.evolens-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.evolens-chart-wrap {
+  width: 100%;
+}
+
+.evolens-loading {
+  font-size: 12px;
+  color: #888;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.evolens-axis-label {
+  font-size: 10px;
+  fill: #888;
+}
+
+.evolens-chart-wrap svg .tick text {
+  font-size: 9.5px;
+  fill: #666;
+}
+.evolens-chart-wrap svg .domain,
+.evolens-chart-wrap svg .tick line {
+  stroke: #ccc;
+}
