@@ -1,5 +1,5 @@
 import math, unittest
-from build_unit_series import level_of, spread_of
+from build_unit_series import level_of, spread_of, build_units
 
 class TestUnitSeriesMath(unittest.TestCase):
     def test_level_penalizes_bad_segments_harder(self):
@@ -21,6 +21,32 @@ class TestUnitSeriesMath(unittest.TestCase):
     def test_spread_single_is_zero_empty_is_nan(self):
         self.assertEqual(spread_of([70.0]), 0.0)
         self.assertTrue(math.isnan(spread_of([])))
+
+class TestBuildUnits(unittest.TestCase):
+    def _meta(self, n, roadbed, county):
+        return {f"s{i}": (roadbed, county) for i in range(n)}
+
+    def test_small_unit_dropped_and_key_format(self):
+        years = [2000, 2001]
+        rows = {f"s{i}": [80.0, 70.0] for i in range(15)}
+        meta = self._meta(15, "SH0240", "Tarrant")
+        out = build_units(rows, list(rows), years, meta)
+        self.assertEqual(len(out["units"]), 1)
+        self.assertEqual(out["units"][0]["key"], "SH0240 · Tarrant")
+        self.assertEqual(out["units"][0]["n_segments"], 15)
+        # a 14-segment unit is dropped
+        rows14 = {f"s{i}": [80.0, 70.0] for i in range(14)}
+        out14 = build_units(rows14, list(rows14), years, self._meta(14, "X", "Y"))
+        self.assertEqual(out14["units"], [])
+
+    def test_year_gap_is_none(self):
+        years = [2000, 2001]
+        rows = {f"s{i}": [80.0, None] for i in range(15)}   # nobody observed 2001
+        meta = self._meta(15, "SH0240", "Tarrant")
+        u = build_units(rows, list(rows), years, meta)["units"][0]
+        self.assertIsNotNone(u["level"][0])
+        self.assertIsNone(u["level"][1])
+        self.assertIsNone(u["spread"][1])
 
 if __name__ == "__main__":
     unittest.main()
