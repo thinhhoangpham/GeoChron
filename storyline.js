@@ -385,9 +385,18 @@
   // ------------------------------------------------------------------------
   // 1. Load data
   // ------------------------------------------------------------------------
-  fetch("storyline_data.json")
+  // Data file is configurable per host page (set window.STORYLINE_DATA_FILE
+  // in an inline <script> before this file loads) so two pages can compare
+  // different proximity-rule datasets without duplicating this whole file.
+  const DATA_FILE = window.STORYLINE_DATA_FILE || "storyline_data_hwcounty.json";
+  // no-store + a cache-busting query: this app is served by a plain
+  // http.server with no cache headers, and the data files get regenerated
+  // frequently during development -- default fetch caching (and even
+  // no-store alone, against some browser disk caches) was serving stale
+  // JSON after pipeline re-runs.
+  fetch(`${DATA_FILE}?t=${Date.now()}`, { cache: "no-store" })
     .then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} fetching storyline_data.json`);
+      if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${DATA_FILE}`);
       return r.json();
     })
     .then((data) => {
@@ -407,7 +416,7 @@
       }, 0);
     })
     .catch((err) => {
-      statusEl.textContent = "Failed to load storyline_data.json: " + err.message;
+      statusEl.textContent = `Failed to load ${DATA_FILE}: ` + err.message;
       console.error(err);
     });
 
@@ -543,13 +552,20 @@
     const memberWithinGroupOrder = new Array(numWindows);
 
     function markerOf(i) { return segments[i].marker || 0; }
+    function roadbedOf(i) { return segments[i].roadbed || ""; }
 
     function orderWindowByMarker(k) {
       const groups = groupsAtK[k];
-      // order members within each group by marker
+      // order members within each group by (roadbed, marker) -- bands can now
+      // mix several highways within one county, and marker numbers reset per
+      // highway, so sorting by marker alone would interleave unrelated
+      // highways in the initial seed order.
       const memOrder = new Map();
       for (const g of groups) {
-        const sorted = g.members.slice().sort((a, b) => markerOf(a) - markerOf(b));
+        const sorted = g.members.slice().sort((a, b) => {
+          const rb = roadbedOf(a) < roadbedOf(b) ? -1 : roadbedOf(a) > roadbedOf(b) ? 1 : 0;
+          return rb !== 0 ? rb : markerOf(a) - markerOf(b);
+        });
         sorted.forEach((segIdx, pos) => memOrder.set(segIdx, pos));
         g._sortedMembers = sorted;
         g._meanMarker = sorted.reduce((s, i) => s + markerOf(i), 0) / sorted.length;
@@ -1170,8 +1186,8 @@
     const winCount = (seg.win || []).length;
     tooltipEl.innerHTML =
       `<b>${escapeHtml(seg.id)}</b><br>` +
-      `Road: ${escapeHtml(road.roadbed)}<br>` +
-      `County: ${escapeHtml(seg.county || "")}<br>` +
+      `Highway: ${escapeHtml(seg.roadbed || "")}<br>` +
+      `County: ${escapeHtml(seg.county || road.roadbed || "")}<br>` +
       `Marker: ${seg.marker}<br>` +
       `Windows present: ${winCount}`;
     tooltipEl.classList.remove("hidden");

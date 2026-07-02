@@ -11,13 +11,18 @@ session's position in that window's kept list (step11_sessions_W5.json, sorted
 by size desc). A session with no overlap into the next window has no forward link
 (a curve that ends).
 
-Input  : step11_sessions_W5.json
-Output : step12_transitions_W5.json  (forward links between sessions)
-         step12_summary.json
-"""
-import json, collections
+Input  : step11_sessions_W5_<rule>.json
+Output : step12_transitions_W5_<rule>.json  (forward links between sessions)
+         step12_summary_<rule>.json
 
-data = json.load(open("step11_sessions_W5.json"))
+Usage: python build_track.py [county|hwcounty]  (default: hwcounty)
+"""
+import json, collections, sys
+
+RULE = sys.argv[1] if len(sys.argv) > 1 else "hwcounty"
+assert RULE in ("county", "hwcounty")
+
+data = json.load(open(f"step11_sessions_W5_{RULE}.json"))
 THS = data["ths"]
 W = data["windows"]
 W.sort(key=lambda w: w["k"])
@@ -52,15 +57,15 @@ for a in range(n - 1):
 
 json.dump({"ths": THS, "n_windows": n, "sizes_per_window": sizes,
            "transitions": transitions},
-          open("step12_transitions_W5.json", "w"))
+          open(f"step12_transitions_W5_{RULE}.json", "w"))
 
 summary = {"ths": THS, "n_windows": n, "n_transitions": len(transitions),
            "pairs": summary_rows}
-json.dump(summary, open("step12_summary.json", "w"), indent=2)
+json.dump(summary, open(f"step12_summary_{RULE}.json", "w"), indent=2)
 
-print(f"{'pair':>11} {'sessions':>9} {'linked':>7} {'ended':>6}")
+print(f"[{RULE}] {'pair':>11} {'sessions':>9} {'linked':>7} {'ended':>6}")
 for r in summary_rows:
     print(f"{r['from_window']:>3}->{r['to_window']:<3}     {r['sessions_from']:>9} "
           f"{r['linked']:>7} {r['ended']:>6}")
 print(f"\ntotal forward links (curves between bundles): {len(transitions):,}")
-print("wrote step12_transitions_W5.json + step12_summary.json")
+print(f"wrote step12_transitions_W5_{RULE}.json + step12_summary_{RULE}.json")

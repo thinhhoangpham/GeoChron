@@ -22,7 +22,7 @@ import json
 import warnings
 import numpy as np
 
-IN_FILE       = "storyline_data.json"
+IN_FILE       = "storyline_data_hwcounty.json"
 OUT_FILE      = "unit_heatmaps.json"
 DROPPED_FILE  = "unit_heatmaps_dropped.json"
 RAW_FILE      = "unit_heatmaps_raw.json"

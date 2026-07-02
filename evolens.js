@@ -319,7 +319,216 @@
         return { p25: percentile(vals, 0.25), p50: percentile(vals, 0.5), p75: percentile(vals, 0.75) };
       });
 
+      drawPerRoadHeatmaps(years, series, road);
       drawSvgChart(years, series, motif);
+    }
+
+    // ------------------------------------------------------------------
+    // Per-highway heatmap cards -- same visual language as clusters.html's
+    // thumbnail grid (real reference-marker position with big-gap collapse,
+    // discrete TxDOT condition-score color buckets, edge-flipping tooltip),
+    // ported directly from clusters.js. A county band can now mix several
+    // highways (Step 8/9's proximity rule may be county-only), so the
+    // brushed selection is first split by each segment's own `roadbed`
+    // field and rendered as one card per highway, rather than one combined
+    // heatmap that would otherwise interleave unrelated roads.
+    // ------------------------------------------------------------------
+    function getCategory(score) {
+      if (score >= 90) return "Very Good";
+      if (score >= 70) return "Good";
+      if (score >= 50) return "Fair";
+      if (score >= 35) return "Poor";
+      if (score < 1) return "Invalid";
+      return "Very Poor";
+    }
+    function getCategoryColor(category) {
+      switch (category) {
+        case "Very Poor": return "rgb(239,68,68)";
+        case "Poor": return "rgb(249,115,22)";
+        case "Fair": return "rgb(234,179,8)";
+        case "Good": return "rgb(34,197,94)";
+        case "Very Good": return "rgb(21,128,61)";
+        case "Invalid": return "rgb(200,200,200)";
+        default: return "rgb(75,85,99)";
+      }
+    }
+    function conditionColor(v) {
+      if (v === null || v === undefined || isNaN(v)) return "#999999";
+      return getCategoryColor(getCategory(v));
+    }
+    // YIQ-based black/white contrast, ported verbatim from
+    // HighwaySegmentChart.tsx's getContrastColor (via clusters.js).
+    function getContrastColor(hexOrRgb) {
+      let r = 0, g = 0, b = 0;
+      if (hexOrRgb.startsWith("#")) {
+        const hex = hexOrRgb.replace("#", "");
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16); g = parseInt(hex[1] + hex[1], 16); b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) {
+          r = parseInt(hex.substring(0, 2), 16); g = parseInt(hex.substring(2, 4), 16); b = parseInt(hex.substring(4, 6), 16);
+        }
+      } else if (hexOrRgb.startsWith("rgb")) {
+        const rgb = hexOrRgb.match(/\d+/g);
+        if (rgb && rgb.length >= 3) { r = parseInt(rgb[0]); g = parseInt(rgb[1]); b = parseInt(rgb[2]); }
+      }
+      const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+      return yiq >= 128 ? "#000000" : "#ffffff";
+    }
+
+    const cellTooltip = document.createElement("div");
+    cellTooltip.className = "evolens-cell-tooltip hidden";
+    document.body.appendChild(cellTooltip);
+    function showCellTooltip(evt, html, color) {
+      cellTooltip.innerHTML = html;
+      cellTooltip.style.backgroundColor = color;
+      cellTooltip.style.color = getContrastColor(color);
+      cellTooltip.classList.remove("hidden");
+      const pad = 12, tw = 200, th = 100;
+      let left = evt.clientX + pad;
+      if (evt.clientX > window.innerWidth - tw - pad) left = evt.clientX - tw - pad;
+      let top = evt.clientY + pad;
+      if (evt.clientY > window.innerHeight - th - pad) top = evt.clientY - th - pad;
+      cellTooltip.style.left = left + "px";
+      cellTooltip.style.top = top + "px";
+    }
+    function hideCellTooltip() { cellTooltip.classList.add("hidden"); }
+
+    // Reference markers reset at TxDOT control-section boundaries (e.g.
+    // "634A" then "636"), which can otherwise appear as a huge false gap
+    // between physically-adjacent segments. Collapse the single largest
+    // real gap (if any) to a small fixed spacer instead of true scale.
+    const GAP_COLLAPSE_THRESHOLD_MI = 100;
+    const GAP_SPACER_FRAC = 0.10;
+    function findBigGap(segments) {
+      const union = [];
+      const EPS = 1e-6;
+      for (const seg of segments) {
+        if (!union.length) { union.push({ start: seg.begin, end: seg.end }); continue; }
+        const last = union[union.length - 1];
+        if (seg.begin <= last.end + EPS) last.end = Math.max(last.end, seg.end);
+        else union.push({ start: seg.begin, end: seg.end });
+      }
+      for (let i = 0; i < union.length - 1; i++) {
+        const size = union[i + 1].start - union[i].end;
+        if (size >= GAP_COLLAPSE_THRESHOLD_MI) return { start: union[i].end, end: union[i + 1].start, size };
+      }
+      return null;
+    }
+
+    function drawPerRoadHeatmaps(years, series, road) {
+      // group the brushed selection by each segment's real highway
+      const byRoadbed = new Map();
+      for (const s of series) {
+        const seg = road.segments[s.segIdx];
+        const rb = (seg && seg.roadbed) || "?";
+        if (!byRoadbed.has(rb)) byRoadbed.set(rb, []);
+        byRoadbed.get(rb).push({ seg, values: s.values });
+      }
+
+      const heading = document.createElement("div");
+      heading.className = "evolens-heatmap-heading";
+      heading.textContent = `Selected segments by highway (${byRoadbed.size} highway${byRoadbed.size === 1 ? "" : "s"}, ${series.length} segments)`;
+      chartWrapEl.appendChild(heading);
+
+      const roadbeds = Array.from(byRoadbed.keys()).sort((a, b) => byRoadbed.get(b).length - byRoadbed.get(a).length);
+      for (const rb of roadbeds) {
+        const items = byRoadbed.get(rb).slice().sort((a, b) => a.seg.begin - b.seg.begin);
+        chartWrapEl.appendChild(buildRoadCard(rb, items, years));
+      }
+    }
+
+    function buildRoadCard(roadbedLabel, items, years) {
+      const card = document.createElement("div");
+      card.className = "evolens-road-card";
+
+      const title = document.createElement("div");
+      title.className = "evolens-road-card-title";
+      title.textContent = `${roadbedLabel} (n=${items.length} segment${items.length === 1 ? "" : "s"})`;
+      card.appendChild(title);
+
+      card.appendChild(drawSegmentHeatmap(roadbedLabel, items, years));
+      return card;
+    }
+
+    // One highway's segments x brushed years, real reference-marker position
+    // on x (with big-gap collapse), newest year at top on y -- same
+    // rendering as clusters.js's drawSegmentHeatmap, adapted to the already
+    // brushed-and-fetched `values` arrays instead of a separate data file.
+    function drawSegmentHeatmap(roadbedLabel, items, years) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "evolens-road-heatmap");
+
+      if (!items.length || !years.length) {
+        svg.setAttribute("viewBox", "0 0 1 1");
+        svg.setAttribute("preserveAspectRatio", "none");
+        return svg;
+      }
+
+      const nYears = years.length;
+      let xMin = Infinity, xMax = -Infinity;
+      for (const it of items) {
+        if (it.seg.begin < xMin) xMin = it.seg.begin;
+        if (it.seg.end > xMax) xMax = it.seg.end;
+      }
+      const xSpan = xMax - xMin > 0 ? xMax - xMin : 1;
+
+      const bigGap = findBigGap(items.map((it) => it.seg));
+      function xFrac(x) {
+        if (!bigGap) return (x - xMin) / xSpan;
+        const drawable = 1 - GAP_SPACER_FRAC;
+        const baseVisibleMiles = xSpan - bigGap.size;
+        let cut = 0;
+        if (x > bigGap.end) cut = bigGap.size;
+        else if (x > bigGap.start) cut = x - bigGap.start;
+        const miles = (x - xMin) - cut;
+        const noSpacer = (miles / Math.max(1e-9, baseVisibleMiles)) * drawable;
+        const offset = x >= bigGap.end ? GAP_SPACER_FRAC : 0;
+        return noSpacer + offset;
+      }
+
+      svg.setAttribute("viewBox", `0 0 1 ${nYears}`);
+      svg.setAttribute("preserveAspectRatio", "none");
+
+      for (const it of items) {
+        const seg = it.seg;
+        const x0 = xFrac(seg.begin);
+        const x1 = xFrac(seg.end);
+        const width = x1 - x0 > 0 ? x1 - x0 : 0;
+        if (width <= 0) continue;
+
+        for (let row = 0; row < nYears; row++) {
+          const score = it.values[row];
+          const isGap = score === null || score === undefined;
+          const color = isGap ? "#bbbbbb" : conditionColor(score);
+
+          const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          rect.setAttribute("x", String(x0));
+          rect.setAttribute("y", String(nYears - 1 - row));
+          rect.setAttribute("width", String(width));
+          rect.setAttribute("height", "1");
+          rect.setAttribute("fill", color);
+          rect.setAttribute("stroke", "#fafafa");
+          rect.setAttribute("stroke-width", "1");
+          rect.setAttribute("vector-effect", "non-scaling-stroke");
+
+          const year = years[row];
+          const mileRange = `mi ${seg.begin.toFixed(1)}-${seg.end.toFixed(1)}`;
+          rect.addEventListener("mousemove", (event) => {
+            let html;
+            if (isGap) {
+              html = `<b>${seg.id}</b><br>Year: ${year}<br>Segment: ${mileRange}<br>No data`;
+            } else {
+              const category = getCategory(score);
+              html = `<b>${seg.id}</b><br>Year: ${year}<br>Segment: ${mileRange}<br>Score: ${score}<br>Category: ${category}`;
+            }
+            showCellTooltip(event, html, color);
+          });
+          rect.addEventListener("mouseout", hideCellTooltip);
+
+          svg.appendChild(rect);
+        }
+      }
+      return svg;
     }
 
     function percentile(sortedArr, p) {

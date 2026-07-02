@@ -9,16 +9,21 @@ All sections participating in the window are added as nodes (even if the spatial
 correlation gate left them with no edges) so the partition covers every section;
 edgeless sections fall out as singleton sessions, which Step 11 will filter.
 
-Inputs : step9_network_W5/win*.npz (filtered edges + members)
-Output : step10_communities_W5.json  (per window: list of sessions, each a list
-                                       of section indices)
-         step10_summary.json
+Inputs : step9_network_W5_<rule>/win*.npz (filtered edges + members)
+Output : step10_communities_W5_<rule>.json  (per window: list of sessions, each
+                                              a list of section indices)
+         step10_summary_<rule>.json
+
+Usage: python build_communities.py [county|hwcounty]  (default: hwcounty)
 """
-import json, os
+import json, os, sys
 import numpy as np
 import networkx as nx
 
-IN_DIR  = "step9_network_W5"
+RULE = sys.argv[1] if len(sys.argv) > 1 else "hwcounty"
+assert RULE in ("county", "hwcounty")
+
+IN_DIR  = f"step9_network_W5_{RULE}"
 SEED    = 42
 
 windows_out = []
@@ -53,6 +58,6 @@ for fn in sorted(os.listdir(IN_DIR)):
     print(f"{k:>3} {G.number_of_nodes():>7} {G.number_of_edges():>8} "
           f"{len(sessions):>9} {singles:>11} {max(sizes) if sizes else 0:>8}")
 
-json.dump({"windows": windows_out}, open("step10_communities_W5.json", "w"))
-json.dump(summary, open("step10_summary.json", "w"), indent=2)
-print(f"\nwrote step10_communities_W5.json + step10_summary.json")
+json.dump({"windows": windows_out}, open(f"step10_communities_W5_{RULE}.json", "w"))
+json.dump(summary, open(f"step10_summary_{RULE}.json", "w"), indent=2)
+print(f"\nwrote step10_communities_W5_{RULE}.json + step10_summary_{RULE}.json")

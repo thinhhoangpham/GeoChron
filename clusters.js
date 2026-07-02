@@ -16,17 +16,30 @@
   const statusEl = document.getElementById("status");
   const sidebarEl = document.getElementById("clusterSidebar");
   const gridEl = document.getElementById("thumbnailGrid");
+  const fillModeEl = document.getElementById("fillMode");
+
+  // Three gap-fill strategies compared for unit clustering (see
+  // build_unit_heatmaps*.py / cluster_units*.py). All three cluster the SAME
+  // 295 units and render identical real-segment heatmaps (drawSegmentHeatmap
+  // always uses unit_segments_full.json, which never has fill applied) --
+  // only which units land in which cluster differs.
+  const CLUSTER_FILES = {
+    flatmean: "unit_clusters.json",
+    fill1: "unit_clusters_fill1.json",
+    nofill: "unit_clusters_nofill.json",
+  };
 
   // ------------------------------------------------------------------------
   // Global state
   // ------------------------------------------------------------------------
   const state = {
-    clustersData: null,   // raw unit_clusters.json
+    clustersData: null,   // raw unit_clusters*.json for the selected fill mode
     unitsByKey: null,     // Map<key, unit> built from unit_heatmaps.json
     rawUnitsByKey: null,  // Map<key, unit> built from unit_heatmaps_raw.json
     segmentsByKey: null,  // Map<key, unit> built from unit_segments_full.json
     years: null,          // real calendar years array from unit_segments_full.json
     selectedClusterIdx: -1,
+    fillMode: "flatmean",
   };
 
   // ------------------------------------------------------------------------
@@ -149,38 +162,49 @@
   // ------------------------------------------------------------------------
   // 1. Load data
   // ------------------------------------------------------------------------
-  Promise.all([
-    fetch("unit_heatmaps.json").then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} fetching unit_heatmaps.json`);
+  function fetchJson(file) {
+    return fetch(file).then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${file}`);
       return r.json();
-    }),
-    fetch("unit_heatmaps_raw.json").then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} fetching unit_heatmaps_raw.json`);
-      return r.json();
-    }),
-    fetch("unit_clusters.json").then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} fetching unit_clusters.json`);
-      return r.json();
-    }),
-    fetch("unit_segments_full.json").then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} fetching unit_segments_full.json`);
-      return r.json();
-    }),
-  ])
-    .then(([heatmapsData, rawHeatmapsData, clustersData, segmentsFullData]) => {
+    });
+  }
+
+  function loadClusters(fillMode) {
+    return fetchJson(CLUSTER_FILES[fillMode]).then((clustersData) => {
+      state.fillMode = fillMode;
       state.clustersData = clustersData;
+      state.selectedClusterIdx = -1;
+      populateSidebar();
+      gridEl.innerHTML = "";
+      statusEl.textContent =
+        `${clustersData.clusters.length} clusters, ${state.segmentsByKey.size} units loaded ` +
+        `(gap fill: ${fillModeEl.options[fillModeEl.selectedIndex].textContent}).`;
+    });
+  }
+
+  Promise.all([
+    fetchJson("unit_heatmaps.json"),
+    fetchJson("unit_heatmaps_raw.json"),
+    fetchJson("unit_segments_full.json"),
+  ])
+    .then(([heatmapsData, rawHeatmapsData, segmentsFullData]) => {
       state.unitsByKey = buildUnitsMap(heatmapsData);
       state.rawUnitsByKey = buildUnitsMap(rawHeatmapsData);
       state.segmentsByKey = buildUnitsMap(segmentsFullData);
       state.years = segmentsFullData.years;
-      populateSidebar();
-      statusEl.textContent =
-        `${clustersData.clusters.length} clusters, ${heatmapsData.units.length} units loaded.`;
+      return loadClusters(state.fillMode);
     })
     .catch((err) => {
       statusEl.textContent = "Failed to load cluster data: " + err.message;
       console.error(err);
     });
+
+  fillModeEl.addEventListener("change", () => {
+    loadClusters(fillModeEl.value).catch((err) => {
+      statusEl.textContent = "Failed to load cluster data: " + err.message;
+      console.error(err);
+    });
+  });
 
   // Builds a Map<unit.key, unit> once so per-click lookups against a
   // cluster's unit_keys are O(1) instead of scanning the full unit list.

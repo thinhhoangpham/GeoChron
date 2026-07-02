@@ -1,0 +1,209 @@
+{
+  "ths": 5,
+  "rule": "drop iff size<ths AND no member in a >=ths session in either neighbor window",
+  "windows": [
+    {
+      "k": 0,
+      "sessions_before": 1083,
+      "sessions_after": 218,
+      "rescued_small": 169,
+      "largest": 352,
+      "segments_in_kept": 3836
+    },
+    {
+      "k": 1,
+      "sessions_before": 1265,
+      "sessions_after": 317,
+      "rescued_small": 262,
+      "largest": 565,
+      "segments_in_kept": 4831
+    },
+    {
+      "k": 2,
+      "sessions_before": 1351,
+      "sessions_after": 311,
+      "rescued_small": 253,
+      "largest": 800,
+      "segments_in_kept": 5742
+    },
+    {
+      "k": 3,
+      "sessions_before": 1667,
+      "sessions_after": 344,
+      "rescued_small": 283,
+      "largest": 903,
+      "segments_in_kept": 6602
+    },
+    {
+      "k": 4,
+      "sessions_before": 1870,
+      "sessions_after": 346,
+      "rescued_small": 286,
+      "largest": 964,
+      "segments_in_kept": 7210
+    },
+    {
+      "k": 5,
+      "sessions_before": 2269,
+      "sessions_after": 573,
+      "rescued_small": 508,
+      "largest": 1066,
+      "segments_in_kept": 7690
+    },
+    {
+      "k": 6,
+      "sessions_before": 2539,
+      "sessions_after": 471,
+      "rescued_small": 406,
+      "largest": 1144,
+      "segments_in_kept": 7718
+    },
+    {
+      "k": 7,
+      "sessions_before": 2911,
+      "sessions_after": 767,
+      "rescued_small": 702,
+      "largest": 1176,
+      "segments_in_kept": 8155
+    },
+    {
+      "k": 8,
+      "sessions_before": 2905,
+      "sessions_after": 472,
+      "rescued_small": 399,
+      "largest": 1190,
+      "segments_in_kept": 8165
+    },
+    {
+      "k": 9,
+      "sessions_before": 3058,
+      "sessions_after": 534,
+      "rescued_small": 468,
+      "largest": 1194,
+      "segments_in_kept": 8222
+    },
+    {
+      "k": 10,
+      "sessions_before": 3160,
+      "sessions_after": 452,
+      "rescued_small": 386,
+      "largest": 1202,
+      "segments_in_kept": 8299
+    },
+    {
+      "k": 11,
+      "sessions_before": 3427,
+      "sessions_after": 594,
+      "rescued_small": 528,
+      "largest": 1203,
+      "segments_in_kept": 8559
+    },
+    {
+      "k": 12,
+      "sessions_before": 3614,
+      "sessions_after": 533,
+      "rescued_small": 461,
+      "largest": 1213,
+      "segments_in_kept": 8737
+    },
+    {
+      "k": 13,
+      "sessions_before": 4008,
+      "sessions_after": 763,
+      "rescued_small": 690,
+      "largest": 1170,
+      "segments_in_kept": 8771
+    },
+    {
+      "k": 14,
+      "sessions_before": 4053,
+      "sessions_after": 623,
+      "rescued_small": 551,
+      "largest": 1082,
+      "segments_in_kept": 8654
+    },
+    {
+      "k": 15,
+      "sessions_before": 4017,
+      "sessions_after": 562,
+      "rescued_small": 484,
+      "largest": 1065,
+      "segments_in_kept": 8414
+    },
+    {
+      "k": 16,
+      "sessions_before": 4076,
+      "sessions_after": 933,
+      "rescued_small": 854,
+      "largest": 1042,
+      "segments_in_kept": 8613
+    },
+    {
+      "k": 17,
+      "sessions_before": 3112,
+      "sessions_after": 498,
+      "rescued_small": 422,
+      "largest": 889,
+      "segments_in_kept": 7526
+    },
+    {
+      "k": 18,
+      "sessions_before": 3020,
+      "sessions_after": 443,
+      "rescued_small": 364,
+      "largest": 895,
+      "segments_in_kept": 7514
+    },
+    {
+      "k": 19,
+      "sessions_before": 2941,
+      "sessions_after": 400,
+      "rescued_small": 330,
+      "largest": 907,
+      "segments_in_kept": 7560
+    },
+    {
+      "k": 20,
+      "sessions_before": 2883,
+      "sessions_after": 449,
+      "rescued_small": 371,
+      "largest": 627,
+      "segments_in_kept": 7211
+    },
+    {
+      "k": 21,
+      "sessions_before": 3057,
+      "sessions_after": 662,
+      "rescued_small": 586,
+      "largest": 526,
+      "segments_in_kept": 7234
+    },
+    {
+      "k": 22,
+      "sessions_before": 3228,
+      "sessions_after": 744,
+      "rescued_small": 669,
+      "largest": 615,
+      "segments_in_kept": 7308
+    },
+    {
+      "k": 23,
+      "sessions_before": 3423,
+      "sessions_after": 746,
+      "rescued_small": 670,
+      "largest": 590,
+      "segments_in_kept": 7075
+    },
+    {
+      "k": 24,
+      "sessions_before": 3165,
+      "sessions_after": 284,
+      "rescued_small": 209,
+      "largest": 386,
+      "segments_in_kept": 5451
+    }
+  ],
+  "total_sessions_before": 72102,
+  "total_sessions_after": 13039,
+  "total_rescued_small": 11311
+}

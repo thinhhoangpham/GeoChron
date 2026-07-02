@@ -2,10 +2,6 @@
   "min_segments": 15,
   "dropped": [
     {
-      "key": "SH0071 L \u00b7 76 - FAYETTE",
-      "n_segments": 14
-    },
-    {
       "key": "SH0190 L \u00b7 43 - COLLIN",
       "n_segments": 14
     },
@@ -51,6 +47,10 @@
     },
     {
       "key": "UA0281 K \u00b7 149 - LIVE OAK",
+      "n_segments": 14
+    },
+    {
+      "key": "SH0071 L \u00b7 76 - FAYETTE",
       "n_segments": 14
     },
     {
@@ -322,10 +322,6 @@
       "n_segments": 10
     },
     {
-      "key": "SH0087 K \u00b7 181 - ORANGE",
-      "n_segments": 10
-    },
-    {
       "key": "SS0408 L \u00b7 57 - DALLAS",
       "n_segments": 10
     },
@@ -347,6 +343,10 @@
     },
     {
       "key": "IH0037 X \u00b7 149 - LIVE OAK",
+      "n_segments": 10
+    },
+    {
+      "key": "SH0087 K \u00b7 181 - ORANGE",
       "n_segments": 10
     },
     {
@@ -430,10 +430,6 @@
       "n_segments": 9
     },
     {
-      "key": "US0059 R \u00b7 204 - SAN JACINTO",
-      "n_segments": 9
-    },
-    {
       "key": "IH0010 A \u00b7 72 - EL PASO",
       "n_segments": 9
     },
@@ -479,6 +475,10 @@
     },
     {
       "key": "SH0249 R \u00b7 170 - MONTGOMERY",
+      "n_segments": 9
+    },
+    {
+      "key": "US0059 R \u00b7 204 - SAN JACINTO",
       "n_segments": 9
     },
     {
@@ -694,14 +694,6 @@
       "n_segments": 7
     },
     {
-      "key": "US0175 R \u00b7 130 - KAUFMAN",
-      "n_segments": 7
-    },
-    {
-      "key": "SH0198 K \u00b7 108 - HENDERSON",
-      "n_segments": 7
-    },
-    {
       "key": "SH0190 A \u00b7 57 - DALLAS",
       "n_segments": 7
     },
@@ -739,6 +731,10 @@
     },
     {
       "key": "IH0045 X \u00b7 57 - DALLAS",
+      "n_segments": 7
+    },
+    {
+      "key": "SH0198 K \u00b7 108 - HENDERSON",
       "n_segments": 7
     },
     {
@@ -807,6 +803,10 @@
     },
     {
       "key": "SH0066 R \u00b7 199 - ROCKWALL",
+      "n_segments": 7
+    },
+    {
+      "key": "US0175 R \u00b7 130 - KAUFMAN",
       "n_segments": 7
     },
     {
@@ -882,10 +882,6 @@
       "n_segments": 6
     },
     {
-      "key": "US0059 L \u00b7 204 - SAN JACINTO",
-      "n_segments": 6
-    },
-    {
       "key": "SH0178 L \u00b7 72 - EL PASO",
       "n_segments": 6
     },
@@ -931,6 +927,10 @@
     },
     {
       "key": "IH0035EL \u00b7 61 - DENTON",
+      "n_segments": 6
+    },
+    {
+      "key": "US0059 L \u00b7 204 - SAN JACINTO",
       "n_segments": 6
     },
     {
@@ -1270,27 +1270,11 @@
       "n_segments": 4
     },
     {
-      "key": "FM0731 R \u00b7 127 - JOHNSON",
-      "n_segments": 4
-    },
-    {
-      "key": "SH0121 L \u00b7 57 - DALLAS",
-      "n_segments": 4
-    },
-    {
-      "key": "SH0121 R \u00b7 57 - DALLAS",
-      "n_segments": 4
-    },
-    {
       "key": "US0069 L \u00b7 92 - GRAYSON",
       "n_segments": 4
     },
     {
       "key": "SS0359 R \u00b7 43 - COLLIN",
-      "n_segments": 4
-    },
-    {
-      "key": "US0175 K \u00b7 108 - HENDERSON",
       "n_segments": 4
     },
     {
@@ -1342,7 +1326,19 @@
       "n_segments": 4
     },
     {
+      "key": "SH0121 L \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
+      "key": "SH0121 R \u00b7 57 - DALLAS",
+      "n_segments": 4
+    },
+    {
       "key": "US0287 A \u00b7 244 - WILBARGER",
+      "n_segments": 4
+    },
+    {
+      "key": "FM0731 R \u00b7 127 - JOHNSON",
       "n_segments": 4
     },
     {
@@ -1486,6 +1482,10 @@
       "n_segments": 4
     },
     {
+      "key": "US0175 K \u00b7 108 - HENDERSON",
+      "n_segments": 4
+    },
+    {
       "key": "BS0114LK \u00b7 220 - TARRANT",
       "n_segments": 4
     },
@@ -1567,14 +1567,6 @@
     },
     {
       "key": "BI0027UL \u00b7 96 - HALE",
-      "n_segments": 3
-    },
-    {
-      "key": "FM0731 L \u00b7 127 - JOHNSON",
-      "n_segments": 3
-    },
-    {
-      "key": "US0290 X \u00b7 237 - WALLER",
       "n_segments": 3
     },
     {
@@ -1667,6 +1659,10 @@
     },
     {
       "key": "US0059 K \u00b7 103 - HARRISON",
+      "n_segments": 3
+    },
+    {
+      "key": "FM0731 L \u00b7 127 - JOHNSON",
       "n_segments": 3
     },
     {
@@ -1910,6 +1906,10 @@
       "n_segments": 3
     },
     {
+      "key": "US0290 X \u00b7 237 - WALLER",
+      "n_segments": 3
+    },
+    {
       "key": "SH0105 K \u00b7 146 - LIBERTY",
       "n_segments": 3
     },
@@ -2007,10 +2007,6 @@
     },
     {
       "key": "FM0360 R \u00b7 80 - FORT BEND",
-      "n_segments": 2
-    },
-    {
-      "key": "US0059 X \u00b7 204 - SAN JACINTO",
       "n_segments": 2
     },
     {
@@ -2199,6 +2195,10 @@
     },
     {
       "key": "FM1774 K \u00b7 170 - MONTGOMERY",
+      "n_segments": 2
+    },
+    {
+      "key": "US0059 X \u00b7 204 - SAN JACINTO",
       "n_segments": 2
     },
     {
@@ -2442,10 +2442,6 @@
       "n_segments": 1
     },
     {
-      "key": "US0259 K \u00b7 172 - MORRIS",
-      "n_segments": 1
-    },
-    {
       "key": "FM3129 K \u00b7 34 - CASS",
       "n_segments": 1
     },
@@ -2506,23 +2502,11 @@
       "n_segments": 1
     },
     {
-      "key": "US0290 A \u00b7 237 - WALLER",
-      "n_segments": 1
-    },
-    {
-      "key": "SH0121 A \u00b7 57 - DALLAS",
-      "n_segments": 1
-    },
-    {
       "key": "FM0755 K \u00b7 24 - BROOKS",
       "n_segments": 1
     },
     {
       "key": "FM3521 K \u00b7 3 - ANGELINA",
-      "n_segments": 1
-    },
-    {
-      "key": "US0059 A \u00b7 204 - SAN JACINTO",
       "n_segments": 1
     },
     {
@@ -2710,6 +2694,10 @@
       "n_segments": 1
     },
     {
+      "key": "US0259 K \u00b7 172 - MORRIS",
+      "n_segments": 1
+    },
+    {
       "key": "US0287 L \u00b7 38 - CHILDRESS",
       "n_segments": 1
     },
@@ -2811,6 +2799,10 @@
     },
     {
       "key": "SS0156 K \u00b7 103 - HARRISON",
+      "n_segments": 1
+    },
+    {
+      "key": "SH0121 A \u00b7 57 - DALLAS",
       "n_segments": 1
     },
     {
@@ -2967,6 +2959,10 @@
     },
     {
       "key": "SL0494 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0059 A \u00b7 204 - SAN JACINTO",
       "n_segments": 1
     },
     {
@@ -3215,6 +3211,10 @@
     },
     {
       "key": "SL0008 K \u00b7 102 - HARRIS",
+      "n_segments": 1
+    },
+    {
+      "key": "US0290 A \u00b7 237 - WALLER",
       "n_segments": 1
     },
     {

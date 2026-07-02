@@ -303,3 +303,56 @@ html, body {
 .evolens-chart-wrap svg .tick line {
   stroke: #ccc;
 }
+
+.evolens-heatmap-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  margin: 4px 0 8px;
+}
+
+.evolens-road-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+}
+
+.evolens-road-card-title {
+  font-size: 11px;
+  color: #444;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evolens-road-heatmap {
+  width: 100%;
+  height: 140px;
+  display: block;
+  shape-rendering: crispEdges;
+}
+
+.evolens-road-heatmap rect {
+  cursor: default;
+}
+
+.evolens-cell-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 1.4;
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 5px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.evolens-cell-tooltip.hidden {
+  display: none;
+}

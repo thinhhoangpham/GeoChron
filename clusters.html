@@ -13,6 +13,14 @@
       <label class="ctl">
         <span>Clusters</span>
       </label>
+      <label class="ctl">
+        <span>Gap fill</span>
+        <select id="fillMode">
+          <option value="flatmean" selected>Flat mean (current)</option>
+          <option value="fill1">Ffill/bfill + interpolation (option 1)</option>
+          <option value="nofill">No fill, pairwise-complete corr (option 2)</option>
+        </select>
+      </label>
     </div>
     <div id="status" class="status">Loading...</div>
   </header>
