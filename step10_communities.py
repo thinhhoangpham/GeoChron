@@ -14,7 +14,7 @@ Output : step10_communities_W5_<rule>.json  (per window: list of sessions, each
                                               a list of section indices)
          step10_summary_<rule>.json
 
-Usage: python build_communities.py [county|hwcounty]  (default: hwcounty)
+Usage: python step10_communities.py [county|hwcounty]  (default: hwcounty)
 """
 import json, os, sys
 import numpy as np

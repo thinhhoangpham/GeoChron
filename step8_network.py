@@ -16,7 +16,7 @@ Inputs : step6_edges_W5/win*.npz (correlation edges + members),
 Output : step9_network_W5_<rule>/win*.npz (filtered edges i, j + members)
          step9_summary_<rule>.json
 
-Usage: python build_network.py [county|hwcounty]  (default: hwcounty, the
+Usage: python step8_network.py [county|hwcounty]  (default: hwcounty, the
 original paper-adapted rule; "county" is the looser same-county-only variant
 kept as a separate comparison dataset, not a replacement.)
 """

@@ -45,7 +45,7 @@ page loads the "county" file):
     within a band, not by marker alone, and each segment carries its own
     "roadbed" field since the band label no longer implies a single highway.
 
-Usage: python export_storyline_data.py [county|hwcounty]  (default: hwcounty)
+Usage: python step17_storyline_data.py [county|hwcounty]  (default: hwcounty)
 
 Each segment also carries "begin"/"end" (real absolute reference-marker mile
 position, length fixed at 0.5mi per the half-mile segment convention), used by

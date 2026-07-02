@@ -5,7 +5,7 @@ Input : unit_heatmaps.json (S x n_windows grid per unit, from build_unit_heatmap
 Output: unit_clusters.json -- {cut_distance, clusters: [{cluster_id, unit_keys, avg_grid}]}
 
 Method: flatten each unit's grid to one vector, compute pairwise Pearson
-correlation (same "shape not level" philosophy as build_corr.py), convert to
+correlation (same "shape not level" philosophy as step6_corr.py), convert to
 distance d = 1 - r, and cut a hierarchical (average-linkage) dendrogram at a
 fixed distance threshold. No pre-set number of clusters.
 """

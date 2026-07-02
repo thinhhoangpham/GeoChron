@@ -42,7 +42,7 @@ total_cells = filled_cells = 0
 
 for road in data["roads"]:
     key = road["roadbed"]
-    segs = road["segments"]           # already marker-sorted by export_storyline_data.py
+    segs = road["segments"]           # already marker-sorted by step17_storyline_data.py
     n_segments = len(segs)
 
     if n_segments < MIN_SEGMENTS:

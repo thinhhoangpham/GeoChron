@@ -15,7 +15,7 @@ Input  : step11_sessions_W5_<rule>.json
 Output : step12_transitions_W5_<rule>.json  (forward links between sessions)
          step12_summary_<rule>.json
 
-Usage: python build_track.py [county|hwcounty]  (default: hwcounty)
+Usage: python step12_track.py [county|hwcounty]  (default: hwcounty)
 """
 import json, collections, sys
 

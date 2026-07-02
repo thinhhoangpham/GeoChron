@@ -1,0 +1,19 @@
+{
+  "runs": [
+    {
+      "date": "2026-07-02T04:49:49.375996+00:00",
+      "input_tokens": 0,
+      "output_tokens": 405183,
+      "files": 97
+    },
+    {
+      "date": "2026-07-02T05:02:22.830583+00:00",
+      "input_tokens": 0,
+      "output_tokens": 50892,
+      "files": 10,
+      "note": "deep concept-to-code re-extraction"
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 456075
+}

@@ -14,7 +14,7 @@ Inputs : step10_communities_W5_<rule>.json
 Output : step11_sessions_W5_<rule>.json  (kept sessions per window)
          step11_summary_<rule>.json
 
-Usage: python build_filter.py [county|hwcounty]  (default: hwcounty)
+Usage: python step11_filter.py [county|hwcounty]  (default: hwcounty)
 """
 import json, sys
 
