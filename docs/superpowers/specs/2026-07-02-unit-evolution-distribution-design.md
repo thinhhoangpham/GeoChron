@@ -11,9 +11,11 @@ individual half-mile segment. Each unit collapses its segments into a compact
 per-year summary and is drawn as one band, bundled with other units that decay in
 sync.
 
-This reduces the ~14,810 segments to the ~295 units that pass the existing
-`>= 15` segment filter (same unit definition as `build_unit_heatmaps.py`, source
-`storyline_data_hwcounty.json`).
+This reduces the ~14,810 segments to the highway-county units that pass a
+`>= 5` segment filter (`MIN_SEGMENTS = 5` — drop near-empty units that have no
+meaningful distribution; a single- or few-segment unit has essentially no
+spread). Same unit definition as `build_unit_heatmaps.py`, source
+`storyline_data_hwcounty.json`.
 
 ## The core problem this solves
 
@@ -83,8 +85,7 @@ host page that points `storyline.js` at it (mirrors how `index.html` /
 1. **Unit summary builder** (new Python step): reads the per-segment yearly
    scores (as `step17_evolens_data.py` / `section_year_matrix.csv` provide) plus
    the unit membership (`roadbed · county`), emits per-unit Level and Spread
-   yearly series. Applies the `>= 15` segment filter for parity with the
-   heatmaps.
+   yearly series. Applies the `>= 5` segment filter (`MIN_SEGMENTS = 5`).
 2. **Grouping**: feed the Level and Spread series through the Step 6–12 pipeline
    at unit granularity, with the two-correlation AND rule.
 3. **Storyline data export**: assemble the storyline JSON (unit = actor, cohort

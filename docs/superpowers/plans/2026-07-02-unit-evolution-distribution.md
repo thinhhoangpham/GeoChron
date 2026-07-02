@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Unit definition: `(roadbed, county)` pair, keyed/displayed as `"{roadbed} · {county}"` — identical to `build_unit_heatmaps.py` and the `hwcounty` rule in `step17_storyline_data.py`.
-- Unit inclusion filter: a unit must have `>= 15` segments (`MIN_SEGMENTS = 15`), matching `build_unit_heatmaps.py`.
+- Unit inclusion filter: a unit must have `>= 5` segments (`MIN_SEGMENTS = 5`) — drop near-empty units with no meaningful distribution.
 - Invalid / no-data segment scores are `< 1` — excluded from every per-year computation.
 - Years: 1996–2024 (29 years) from `windows_W5.json["years"]`. Windows: 25 sliding W=5 windows from `windows_W5.json["windows"]` (each has `start`, `end`, `section_idx`).
 - Correlation params (match `step6_corr.py`): Pearson threshold `THR = 0.7`, minimum overlapping real years `MIN_OVERLAP = 4`.
@@ -141,7 +141,7 @@ git commit -m "feat: per-unit yearly Level & Spread math"
   - `build_units(matrix_rows, sections, years, meta) -> dict` returning
     `{"years": [...], "units": [ {"key","roadbed","county","n_segments",
     "level":[per-year float|None], "spread":[per-year float|None]} ... ]}`.
-    Only units with `>= 15` segments are included. `None` marks a year with no
+    Only units with `>= 5` segments are included. `None` marks a year with no
     valid segment for that unit.
   - `main()` writing `unit_series.json` with the same structure plus
     `"windows"` copied from `windows_W5.json` (`k,start,end,label`) and, per
@@ -160,17 +160,18 @@ class TestBuildUnits(unittest.TestCase):
         return {f"s{i}": (roadbed, county) for i in range(n)}
 
     def test_small_unit_dropped_and_key_format(self):
+        # MIN_SEGMENTS = 5: a 5-segment unit is kept, a 4-segment unit dropped.
         years = [2000, 2001]
-        rows = {f"s{i}": [80.0, 70.0] for i in range(15)}
-        meta = self._meta(15, "SH0240", "Tarrant")
+        rows = {f"s{i}": [80.0, 70.0] for i in range(5)}
+        meta = self._meta(5, "SH0240", "Tarrant")
         out = build_units(rows, list(rows), years, meta)
         self.assertEqual(len(out["units"]), 1)
         self.assertEqual(out["units"][0]["key"], "SH0240 · Tarrant")
-        self.assertEqual(out["units"][0]["n_segments"], 15)
-        # a 14-segment unit is dropped
-        rows14 = {f"s{i}": [80.0, 70.0] for i in range(14)}
-        out14 = build_units(rows14, list(rows14), years, self._meta(14, "X", "Y"))
-        self.assertEqual(out14["units"], [])
+        self.assertEqual(out["units"][0]["n_segments"], 5)
+        # a 4-segment unit is dropped
+        rows4 = {f"s{i}": [80.0, 70.0] for i in range(4)}
+        out4 = build_units(rows4, list(rows4), years, self._meta(4, "X", "Y"))
+        self.assertEqual(out4["units"], [])
 
     def test_year_gap_is_none(self):
         years = [2000, 2001]
@@ -193,7 +194,7 @@ Expected: FAIL with `cannot import name 'build_units'`.
 # append to build_unit_series.py
 import csv, json, collections
 
-MIN_SEGMENTS = 15
+MIN_SEGMENTS = 5
 
 def build_units(matrix_rows, sections, years, meta):
     by_unit = collections.defaultdict(list)          # (roadbed,county) -> [section_id]
@@ -255,7 +256,7 @@ if __name__ == "__main__":
 - [ ] **Step 4: Run tests + generate real output**
 
 Run: `python -m pytest tests/test_unit_series.py -v && python build_unit_series.py`
-Expected: tests PASS; script prints `units: <~295>` and writes `unit_series.json`.
+Expected: tests PASS; script prints `units: <N>` (more than 295 now that the filter is `>= 5`) and writes `unit_series.json`.
 
 - [ ] **Step 5: Commit**
 
@@ -749,7 +750,7 @@ git commit -m "chore: unit-evolution orchestrator + graphify update"
 ## Self-Review
 
 **Spec coverage:**
-- Highway-county unit actors, ≥15-segment filter → Tasks 1–2 (`MIN_SEGMENTS`, unit key). ✅
+- Highway-county unit actors, ≥5-segment filter → Tasks 1–2 (`MIN_SEGMENTS`, unit key). ✅
 - Two numbers/year (Level squared-gap, Spread std), invalid `<1` excluded, 1-segment spread=0 → Task 1. ✅
 - Two independent single-value correlations combined with AND → Tasks 3–4 (`pairwise_edges` run twice, `and_edges`). ✅
 - County spatial gate, Louvain, step-11 filter reused at unit level → Task 4. ✅

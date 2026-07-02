@@ -27,12 +27,13 @@ OUT_FILE      = "unit_heatmaps.json"
 DROPPED_FILE  = "unit_heatmaps_dropped.json"
 RAW_FILE      = "unit_heatmaps_raw.json"
 S             = 20   # fixed number of spatial bins
-MIN_SEGMENTS  = 15   # units with fewer segments than this are dropped (see plan).
-                     # Raised from 3: with S=20 spatial bins, units with far fewer
-                     # segments than S end up mostly filled with their own flat
-                     # mean (confirmed artifact on SH0240 R, 6 segments -> ~65%
-                     # fabricated flat cells). 15 trades coverage (775->295 units)
-                     # for meaningfully less filler per heatmap (39.5%->29.4%).
+MIN_SEGMENTS  = 5    # units with fewer segments than this are dropped.
+                     # NOTE: with S=20 spatial bins, units with far fewer segments
+                     # than S get heavily gap-filled with their own flat mean, so
+                     # the resampled heatmap for small units is mostly fabricated
+                     # filler. Kept at 5 (filter out only near-empty units) at the
+                     # user's direction; if the resampled-heatmap filler becomes a
+                     # problem again, raise this or use the raw (un-resampled) grid.
 
 data = json.load(open(IN_FILE, encoding="utf-8"))
 n_windows = len(data["windows"])

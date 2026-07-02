@@ -30,7 +30,7 @@ def spread_of(scores):
     var = sum((s - mean) ** 2 for s in valid) / len(valid)
     return math.sqrt(var)
 
-MIN_SEGMENTS = 15
+MIN_SEGMENTS = 5
 
 def build_units(matrix_rows, sections, years, meta):
     by_unit = collections.defaultdict(list)          # (roadbed,county) -> [section_id]

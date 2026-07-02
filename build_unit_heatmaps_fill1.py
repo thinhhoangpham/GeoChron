@@ -31,7 +31,7 @@ IN_FILE      = "storyline_data_hwcounty.json"
 OUT_FILE     = "unit_heatmaps_fill1.json"
 DROPPED_FILE = "unit_heatmaps_fill1_dropped.json"
 S            = 20
-MIN_SEGMENTS = 15  # same threshold as build_unit_heatmaps.py, for a fair comparison
+MIN_SEGMENTS = 5  # same threshold as build_unit_heatmaps.py, for a fair comparison
 
 data = json.load(open(IN_FILE, encoding="utf-8"))
 n_windows = len(data["windows"])

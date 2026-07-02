@@ -37,7 +37,7 @@ STORYLINE_FILE = "storyline_data.json"
 META_FILE      = "sections_meta.csv"
 EVOLENS_FILE   = "evolens_data.json"
 OUT_FILE       = "unit_segments_full.json"
-MIN_SEGMENTS   = 15   # keep in sync with build_unit_heatmaps.py
+MIN_SEGMENTS   = 5    # keep in sync with build_unit_heatmaps.py
 SEGMENT_LENGTH_MI = 0.5
 
 storyline = json.load(open(STORYLINE_FILE, encoding="utf-8"))
