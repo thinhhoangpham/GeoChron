@@ -143,7 +143,7 @@
        "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"];
 
   const UNAFF_GRAY = "#bbbbbb"; // neutral hue when a segment has no persistent color-track
-  const FADE_ALPHA = 0.3; // opacity for unaffiliated (no-cohort) units, both render paths
+  const FADE_ALPHA = 0.5; // opacity for unaffiliated (no-cohort) units, both render paths
 
   function cohortColor(trackId, v) {
     if (trackId < 0) return shadeGray(v); // unaffiliated: no cohort hue
