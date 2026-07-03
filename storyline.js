@@ -306,22 +306,16 @@
       }
     }
 
-    // geometry = { bars: [{x0,y0,x1,y1,rgba,sp}], connectors: [{ax,ay,bx,by,rgba,sp}] }
-    // Each bar/connector's quad is built individually (pushQuad takes an
-    // explicit thickness per call), so per-item width from `sp` is applied
-    // here at build time -- unlike a GL_LINES uniform-width approach, this
-    // requires no shader changes. baseBarThickness/baseConnectorThickness are
-    // the fallback used via widthFromSpread when sp is absent (hwcounty/
-    // county datasets), matching the original fixed-width behavior exactly.
-    function setGeometry(bars, connectors, baseBarThickness, baseConnectorThickness) {
+    // geometry = { bars: [{x0,y0,x1,y1,rgba}], connectors: [{ax,ay,bx,by,rgba}] }
+    function setGeometry(bars, connectors, barThickness, connectorThickness) {
       const positions = [];
       const colors = [];
       for (const b of bars) {
-        pushQuad(positions, colors, b.x0, b.y, b.x1, b.y, widthFromSpread(b.sp, baseBarThickness), b.rgba);
+        pushQuad(positions, colors, b.x0, b.y, b.x1, b.y, barThickness, b.rgba);
       }
       barVertexCount = positions.length / 2;
       for (const c of connectors) {
-        pushBezierAsQuads(positions, colors, c.ax, c.ay, c.bx, c.by, widthFromSpread(c.sp, baseConnectorThickness), c.rgba);
+        pushBezierAsQuads(positions, colors, c.ax, c.ay, c.bx, c.by, connectorThickness, c.rgba);
       }
       connectorVertexCount = positions.length / 2 - barVertexCount;
 
@@ -805,7 +799,7 @@
         const relY = geo.segY[i].get(w.k);
         if (relY === undefined) continue; // shouldn't happen, but guard
         const colorTrackId = w.s == null ? -1 : (struct.nodeColorTrack.get(`${w.k}:s:${w.s}`) ?? -1);
-        pts.push({ k: w.k, v: w.v, sp: w.sp, trackId: colorTrackId, y: yOffset + relY });
+        pts.push({ k: w.k, v: w.v, trackId: colorTrackId, y: yOffset + relY });
       }
       out[i] = pts;
     }
@@ -949,28 +943,24 @@
     if (!glRenderer) {
       // --- Fallback: original Canvas-2D bar/connector rendering ---------
       const dimAlpha = hoverActive ? 0.12 : 1;
-      const barWidth = Math.max(1.4, state.rowPx * 0.7);
-      const connectorWidth = Math.max(0.7, barWidth * 0.5);
-      const buckets = new Map(); // colorStr -> { barsByWidth, connectorsByWidth }
+      const buckets = new Map(); // colorStr -> Path2D
       for (const [roadIdx, pts] of pointsCache) {
         for (let segIdx = 0; segIdx < pts.length; segIdx++) {
           if (hoverActive && state.hover.roadIdx === roadIdx && state.hover.segIdx === segIdx) continue;
-          appendLines(roadIdx, pts[segIdx], buckets, barWidth, connectorWidth);
+          appendLines(roadIdx, pts[segIdx], buckets);
         }
       }
+      const barWidth = Math.max(1.4, state.rowPx * 0.7);
+      const connectorWidth = Math.max(0.7, barWidth * 0.5);
       ctx.lineCap = "round";
-      for (const [color, { barsByWidth, connectorsByWidth }] of buckets) {
-        ctx.strokeStyle = color;
+      for (const [color, { bars, connectors }] of buckets) {
         ctx.globalAlpha = dimAlpha;
-        for (const [width, bars] of barsByWidth) {
-          ctx.lineWidth = width;
-          ctx.stroke(bars);
-        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = barWidth;
+        ctx.stroke(bars);
         ctx.globalAlpha = dimAlpha * 0.55;
-        for (const [width, connectors] of connectorsByWidth) {
-          ctx.lineWidth = width;
-          ctx.stroke(connectors);
-        }
+        ctx.lineWidth = connectorWidth;
+        ctx.stroke(connectors);
       }
       ctx.globalAlpha = 1;
     }
@@ -1000,7 +990,7 @@
           const p = segPts[i];
           const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
           const rgba = colorToFloats(color, 1);
-          bars.push({ x0: colX(p.k) - halfBar, x1: colX(p.k) + halfBar, y: p.y, rgba, sp: p.sp });
+          bars.push({ x0: colX(p.k) - halfBar, x1: colX(p.k) + halfBar, y: p.y, rgba });
         }
         for (let i = 0; i < segPts.length - 1; i++) {
           const a = segPts[i], b = segPts[i + 1];
@@ -1011,7 +1001,6 @@
             ax: colX(a.k) + halfBar, ay: a.y,
             bx: colX(b.k) - halfBar, by: b.y,
             rgba,
-            sp: avgSp(a.sp, b.sp),
           });
         }
       }
@@ -1035,32 +1024,18 @@
   // right edge to the next bar's left edge. A true eligibility gap
   // (segment missing the next window entirely) breaks the connector, no
   // interpolation across it.
-  // Path2D can only be stroked with a single ctx.lineWidth per stroke() call,
-  // so per-bar/per-connector width (from sp) requires a separate sub-path per
-  // distinct width value, not just per color. barsByWidth/connectorsByWidth
-  // map a rounded width -> Path2D; when sp is absent every bar/connector maps
-  // to the same base width, so this collapses back to the original single
-  // Path2D-per-color behavior (no behavior change for hwcounty/county pages).
   function bucketFor(buckets, color) {
     let b = buckets.get(color);
-    if (!b) { b = { barsByWidth: new Map(), connectorsByWidth: new Map() }; buckets.set(color, b); }
+    if (!b) { b = { bars: new Path2D(), connectors: new Path2D() }; buckets.set(color, b); }
     return b;
   }
 
-  function pathForWidth(byWidth, width) {
-    const key = Math.round(width * 10) / 10; // avoid float-noise fragmenting buckets
-    let p = byWidth.get(key);
-    if (!p) { p = new Path2D(); byWidth.set(key, p); }
-    return p;
-  }
-
-  function appendLines(roadIdx, pts, buckets, barWidth, connectorWidth) {
+  function appendLines(roadIdx, pts, buckets) {
     const halfBar = state.colW / 2;
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
       const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
-      const { barsByWidth } = bucketFor(buckets, color);
-      const bars = pathForWidth(barsByWidth, widthFromSpread(p.sp, barWidth));
+      const { bars } = bucketFor(buckets, color);
       const x0 = colX(p.k) - halfBar, x1 = colX(p.k) + halfBar;
       bars.moveTo(x0, p.y);
       bars.lineTo(x1, p.y);
@@ -1069,8 +1044,7 @@
       const a = pts[i], b = pts[i + 1];
       if (b.k - a.k !== 1) continue; // gap, no connector
       const color = edgeColor(roadIdx, a, b);
-      const { connectorsByWidth } = bucketFor(buckets, color);
-      const connectors = pathForWidth(connectorsByWidth, widthFromSpread(avgSp(a.sp, b.sp), connectorWidth));
+      const { connectors } = bucketFor(buckets, color);
       const ax = colX(a.k) + halfBar, ay = a.y;
       const bx = colX(b.k) - halfBar, by = b.y;
       const midX = (ax + bx) / 2;
@@ -1085,34 +1059,12 @@
     return conditionColor(v);
   }
 
-  // Spread -> line thickness. sp is the window's mean segment std (0..~40),
-  // present only in the units dataset (storyline_data_units.json). Absent
-  // (null/undefined) in the hwcounty/county datasets -> base width, so those
-  // two pages render identically to before this change.
-  // Uniform unit (sp~0) -> base width; mixed unit -> up to ~4x base.
-  function widthFromSpread(sp, base) {
-    if (sp == null) return base;
-    return base * (1 + Math.min(sp / 12, 3));   // cap at 4x
-  }
-
   function avgV(v1, v2) {
     const has1 = v1 !== null && v1 !== undefined && !isNaN(v1);
     const has2 = v2 !== null && v2 !== undefined && !isNaN(v2);
     if (has1 && has2) return (v1 + v2) / 2;
     if (has1) return v1;
     if (has2) return v2;
-    return null;
-  }
-
-  // Same null-safe averaging as avgV, used to pick a connector's spread from
-  // its two endpoint windows (sp is absent on hwcounty/county data, so this
-  // returns null there and widthFromSpread falls back to base width).
-  function avgSp(sp1, sp2) {
-    const has1 = sp1 !== null && sp1 !== undefined && !isNaN(sp1);
-    const has2 = sp2 !== null && sp2 !== undefined && !isNaN(sp2);
-    if (has1 && has2) return (sp1 + sp2) / 2;
-    if (has1) return sp1;
-    if (has2) return sp2;
     return null;
   }
 
@@ -1124,21 +1076,21 @@
     const connectorWidth = Math.max(1.5, barWidth * 0.5);
     ctx.lineCap = "round";
 
+    ctx.lineWidth = barWidth;
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
       ctx.strokeStyle = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
-      ctx.lineWidth = widthFromSpread(p.sp, barWidth);
       ctx.beginPath();
       ctx.moveTo(colX(p.k) - halfBar, p.y);
       ctx.lineTo(colX(p.k) + halfBar, p.y);
       ctx.stroke();
     }
 
+    ctx.lineWidth = connectorWidth;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1];
       if (b.k - a.k !== 1) continue;
       ctx.strokeStyle = edgeColor(roadIdx, a, b);
-      ctx.lineWidth = widthFromSpread(avgSp(a.sp, b.sp), connectorWidth);
       const ax = colX(a.k) + halfBar, ay = a.y;
       const bx = colX(b.k) - halfBar, by = b.y;
       const midX = (ax + bx) / 2;
