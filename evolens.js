@@ -211,8 +211,8 @@
       const y0 = Math.min(brushStart.y, brushCur.y);
       const w = Math.abs(brushCur.x - brushStart.x);
       const h = Math.abs(brushCur.y - brushStart.y);
-      overlayEl.style.left = x0 + "px";
-      overlayEl.style.top = y0 + "px";
+      overlayEl.style.left = (x0 + state.scrollLeft) + "px";
+      overlayEl.style.top = (y0 + state.scrollTop) + "px";
       overlayEl.style.width = w + "px";
       overlayEl.style.height = h + "px";
       overlayEl.classList.remove("hidden");
@@ -225,8 +225,8 @@
 
     function syncSelectionOverlay() {
       if (!activeSelection) return;
-      const x0 = activeSelection.x0 - state.scrollLeft;
-      const y0 = activeSelection.y0 - state.scrollTop;
+      const x0 = activeSelection.x0;
+      const y0 = activeSelection.y0;
       const w = activeSelection.x1 - activeSelection.x0;
       const h = activeSelection.y1 - activeSelection.y0;
       selectionEl.style.left = x0 + "px";
