@@ -72,3 +72,86 @@ Write the entities (with coordinates and full time series), the per-window sessi
 ---
 
 > **Note:** The one step that is non-negotiable for your data is **Step 4 plus Step 5** — windowing into multi-year slices and normalizing to trend — because annual sampling can't support the paper's original single-day-slice correlation.
+
+---
+
+# Unit-Level Distribution-Aware Variant
+
+The base pipeline above treats each half-mile **segment** as an entity. The
+unit-level variant treats a **(roadbed, county) unit** (a highway within a county,
+keyed `"{roadbed} · {county}"`) as the entity, so ~14,810 segments collapse to a
+few hundred units. Because a unit bundles many segments, we cannot describe it with
+a single number per year without throwing away its condition *distribution*: a
+uniformly-fair road and a road that is half-excellent / half-failing can share the
+same average and look identical. A single scalar cannot separate those cases —
+they differ along two independent axes (how bad on average, and how spread out) —
+so each unit carries **two** one-number-per-year series, and the grouping
+correlates each series independently.
+
+Filtering: a unit is kept only if it has at least `MIN_SEGMENTS = 5` segments (a
+single/few-segment unit has no meaningful distribution). Implemented in
+`build_unit_series.py` → `build_unit_sessions.py` → `build_unit_storyline_data.py`.
+
+## U1 — Per-unit, per-year Level and Spread
+
+For a unit in a given year, take the raw 0–100 condition scores of its segments
+observed that year. Drop any segment scoring `< 1` (Invalid / no-data). From the
+remaining valid scores:
+
+- **Level** — mean of the **squared gap below 100**:
+  `Level = mean( (100 − score)² )`.
+  A perfect segment contributes 0; the *squaring* makes bad segments count
+  disproportionately, so a bad tail cannot be masked by good segments averaging it
+  out. (Example: all-fair `[60×10]` → Level 1600; mixed `[80×5, 20×5]`, same mean
+  score, → Level 3400.)
+- **Spread** — the **population standard deviation** of that year's valid scores
+  (`sqrt(mean((score − mean)²))`): "how far, on average, is a segment from the
+  unit's own mean that year." Uniform unit → ≈ 0; mixed unit → large.
+
+Edge cases: a year with **no** valid segment is a genuine gap (`null`, no
+Level/Spread point — treated like any eligibility gap); a year with exactly **one**
+valid segment gets Level normally and **Spread = 0**. Doing this for every year
+(1996–2024) yields, per unit, a **Level line** and a **Spread line** — two ordinary
+one-value-per-year series. (`level_of` / `spread_of` in `build_unit_series.py`.)
+
+## U2 — Two independent correlations, AND-combined
+
+Correlation is only defined on a single value per year, so the two Spread/Level
+values never enter one correlation together. Instead, per window, the base Step
+6/7 machinery is run **twice**:
+
+1. Pairwise-complete Pearson on the units' **Level** lines (≥ `MIN_OVERLAP = 4`
+   common observed years), thresholded at `r > THR = 0.7` → Level edges.
+2. The same, independently, on the units' **Spread** lines → Spread edges.
+
+A pair of units keeps an edge only where it appears in **both** sets — a logical
+**AND** (set intersection, `and_edges`). Two units are thus linked only when their
+typical condition *and* their internal heterogeneity rise and fall together over
+time. Every correlation still sees exactly one number per year; the "two values"
+live in two separate single-value streams, not inside one correlation.
+(`pairwise_edges`, `and_edges` in `build_unit_sessions.py`.)
+
+## U3 — Gate, cluster, filter, emit (unchanged from the base pipeline)
+
+The AND-combined edges then go through the same later steps at unit granularity:
+county spatial gate (Step 8/9 — keep an edge only if both units share a county) →
+Louvain communities per window (Step 10, `SEED = 42`) → small-session filter
+(Step 11, `THS = 5`, with the neighbor-window rescue rule) → cross-window tracking
+by membership overlap (Step 12, done in the front end). Output is
+`unit_sessions.json` (per-window cohorts of unit indices).
+
+## U4 — Storyline serialization and color
+
+`build_unit_storyline_data.py` emits `storyline_data_units.json` in the standard
+Storyline contract, with **county** as the band and each **unit** as an atom. For
+coloring, the distribution-aware Level is mapped back onto the existing 0–100
+condition color scale via an *effective* condition score:
+`v = round(max(0, 100 − sqrt(Level)), 1)` (i.e. `100 − RMS gap`, which already
+penalizes bad tails). Unaffiliated units (no cohort in a window, `s = null`) are
+rendered faded in the storyline so packed singleton piles read distinct from real
+cohorts.
+
+> **Known limitation:** two numbers still cannot fully encode a multi-category
+> distribution — genuinely different segment mixes can occasionally share both
+> Level and Spread. Level + Spread is the minimum that separates the cases we care
+> about (uniform-good / uniform-fair / uniform-poor / mixed); it is not lossless.
