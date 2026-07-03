@@ -143,6 +143,7 @@
        "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"];
 
   const UNAFF_GRAY = "#bbbbbb"; // neutral hue when a segment has no persistent color-track
+  const FADE_ALPHA = 0.3; // opacity for unaffiliated (no-cohort) units, both render paths
 
   function cohortColor(trackId, v) {
     if (trackId < 0) return shadeGray(v); // unaffiliated: no cohort hue
@@ -953,14 +954,14 @@
       const barWidth = Math.max(1.4, state.rowPx * 0.7);
       const connectorWidth = Math.max(0.7, barWidth * 0.5);
       ctx.lineCap = "round";
-      for (const [color, { bars, connectors }] of buckets) {
-        ctx.globalAlpha = dimAlpha;
-        ctx.strokeStyle = color;
+      for (const bucket of buckets.values()) {
+        ctx.strokeStyle = bucket.color;
+        ctx.globalAlpha = dimAlpha * (bucket.faded ? FADE_ALPHA : 1);
         ctx.lineWidth = barWidth;
-        ctx.stroke(bars);
-        ctx.globalAlpha = dimAlpha * 0.55;
+        ctx.stroke(bucket.bars);
+        ctx.globalAlpha = dimAlpha * 0.55 * (bucket.faded ? FADE_ALPHA : 1);
         ctx.lineWidth = connectorWidth;
-        ctx.stroke(connectors);
+        ctx.stroke(bucket.connectors);
       }
       ctx.globalAlpha = 1;
     }
@@ -989,14 +990,14 @@
         for (let i = 0; i < segPts.length; i++) {
           const p = segPts[i];
           const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
-          const rgba = colorToFloats(color, 1);
+          const rgba = colorToFloats(color, p.trackId < 0 ? FADE_ALPHA : 1);
           bars.push({ x0: colX(p.k) - halfBar, x1: colX(p.k) + halfBar, y: p.y, rgba });
         }
         for (let i = 0; i < segPts.length - 1; i++) {
           const a = segPts[i], b = segPts[i + 1];
           if (b.k - a.k !== 1) continue; // gap, no connector
           const color = edgeColor(roadIdx, a, b);
-          const rgba = colorToFloats(color, 1);
+          const rgba = colorToFloats(color, (a.trackId < 0 && b.trackId < 0) ? FADE_ALPHA : 1);
           connectors.push({
             ax: colX(a.k) + halfBar, ay: a.y,
             bx: colX(b.k) - halfBar, by: b.y,
@@ -1024,9 +1025,10 @@
   // right edge to the next bar's left edge. A true eligibility gap
   // (segment missing the next window entirely) breaks the connector, no
   // interpolation across it.
-  function bucketFor(buckets, color) {
-    let b = buckets.get(color);
-    if (!b) { b = { bars: new Path2D(), connectors: new Path2D() }; buckets.set(color, b); }
+  function bucketFor(buckets, color, faded) {
+    const key = `${color}|${faded ? 'f' : 's'}`;
+    let b = buckets.get(key);
+    if (!b) { b = { bars: new Path2D(), connectors: new Path2D(), color, faded }; buckets.set(key, b); }
     return b;
   }
 
@@ -1035,7 +1037,8 @@
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
       const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
-      const { bars } = bucketFor(buckets, color);
+      const faded = p.trackId < 0;
+      const { bars } = bucketFor(buckets, color, faded);
       const x0 = colX(p.k) - halfBar, x1 = colX(p.k) + halfBar;
       bars.moveTo(x0, p.y);
       bars.lineTo(x1, p.y);
@@ -1044,7 +1047,8 @@
       const a = pts[i], b = pts[i + 1];
       if (b.k - a.k !== 1) continue; // gap, no connector
       const color = edgeColor(roadIdx, a, b);
-      const { connectors } = bucketFor(buckets, color);
+      const faded = (a.trackId < 0 && b.trackId < 0);
+      const { connectors } = bucketFor(buckets, color, faded);
       const ax = colX(a.k) + halfBar, ay = a.y;
       const bx = colX(b.k) - halfBar, by = b.y;
       const midX = (ax + bx) / 2;
