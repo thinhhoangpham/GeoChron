@@ -33,17 +33,12 @@ import csv
 import json
 import re
 
-STORYLINE_FILE = "storyline_data.json"
+STORYLINE_FILE = "storyline_data_hwcounty.json"
 META_FILE      = "sections_meta.csv"
 EVOLENS_FILE   = "evolens_data.json"
 OUT_FILE       = "unit_segments_full.json"
 MIN_SEGMENTS   = 5    # keep in sync with build_unit_heatmaps.py
 SEGMENT_LENGTH_MI = 0.5
-
-storyline = json.load(open(STORYLINE_FILE, encoding="utf-8"))
-evolens = json.load(open(EVOLENS_FILE, encoding="utf-8"))
-years = evolens["years"]
-scores_by_id = evolens["scores"]
 
 def clean_and_round(value):
     """Port of the reference chart's cleanAndRound(): strip everything but
@@ -54,27 +49,37 @@ def clean_and_round(value):
     return round(float(cleaned), 3)
 
 
-begin_pos = {}
-for row in csv.DictReader(open(META_FILE, encoding="utf-8")):
-    bm = clean_and_round(row["begin_marker"])
-    bd = clean_and_round(row["begin_disp"])
-    begin_pos[row["section_id"]] = bm + bd
+def main():
+    storyline = json.load(open(STORYLINE_FILE, encoding="utf-8"))
+    evolens = json.load(open(EVOLENS_FILE, encoding="utf-8"))
+    years = evolens["years"]
+    scores_by_id = evolens["scores"]
 
-units = []
-for road in storyline["roads"]:
-    segs = road["segments"]
-    if len(segs) < MIN_SEGMENTS:
-        continue
-    out_segs = []
-    for seg in segs:
-        sid = seg["id"]
-        begin = begin_pos.get(sid, seg.get("marker", 0.0))
-        out_segs.append({
-            "id": sid, "begin": begin, "end": begin + SEGMENT_LENGTH_MI,
-            "scores": scores_by_id.get(sid, [None] * len(years)),
-        })
-    out_segs.sort(key=lambda s: s["begin"])
-    units.append({"key": road["roadbed"], "n_segments": len(out_segs), "segments": out_segs})
+    begin_pos = {}
+    for row in csv.DictReader(open(META_FILE, encoding="utf-8")):
+        bm = clean_and_round(row["begin_marker"])
+        bd = clean_and_round(row["begin_disp"])
+        begin_pos[row["section_id"]] = bm + bd
 
-json.dump({"years": years, "units": units}, open(OUT_FILE, "w"))
-print(f"units: {len(units)}   wrote {OUT_FILE}")
+    units = []
+    for road in storyline["roads"]:
+        segs = road["segments"]
+        if len(segs) < MIN_SEGMENTS:
+            continue
+        out_segs = []
+        for seg in segs:
+            sid = seg["id"]
+            begin = begin_pos.get(sid, seg.get("marker", 0.0))
+            out_segs.append({
+                "id": sid, "begin": begin, "end": begin + SEGMENT_LENGTH_MI,
+                "scores": scores_by_id.get(sid, [None] * len(years)),
+            })
+        out_segs.sort(key=lambda s: s["begin"])
+        units.append({"key": road["roadbed"], "n_segments": len(out_segs), "segments": out_segs})
+
+    json.dump({"years": years, "units": units}, open(OUT_FILE, "w"))
+    print(f"units: {len(units)}   wrote {OUT_FILE}")
+
+
+if __name__ == "__main__":
+    main()

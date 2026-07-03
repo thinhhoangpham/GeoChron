@@ -39,6 +39,8 @@
   function init() {
     const SL = window.__storyline;
     const { state, canvas, canvasWrap, colX, colPitch, MARGIN_LEFT, visibleRoadIndices, getPointsCache, redraw } = SL;
+    const UNIT_MODE = window.STORYLINE_DRILLDOWN_MODE === "unit";
+    const MAX_SELECTED_UNITS = 40;
 
     // ------------------------------------------------------------------
     // DOM: panel + brush hint, injected once
@@ -88,6 +90,24 @@
       return evolensFetchPromise;
     }
 
+    let unitSegmentsData = null; // { years, units, byKey: Map(key -> unit) }
+    let unitSegmentsFetchPromise = null;
+    function ensureUnitSegments() {
+      if (unitSegmentsData) return Promise.resolve(unitSegmentsData);
+      if (unitSegmentsFetchPromise) return unitSegmentsFetchPromise;
+      unitSegmentsFetchPromise = fetch("unit_segments_full.json")
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status} fetching unit_segments_full.json`);
+          return r.json();
+        })
+        .then((d) => {
+          d.byKey = new Map(d.units.map((u) => [u.key, u]));
+          unitSegmentsData = d;
+          return d;
+        });
+      return unitSegmentsFetchPromise;
+    }
+
     // ------------------------------------------------------------------
     // Brush state + overlay rectangle (drawn as part of storyline's own
     // draw() via a hook we append after; simplest robust approach is a
@@ -122,6 +142,15 @@
     }
 
     function updateBrushHintVisibility() {
+      if (UNIT_MODE) {
+        if (state.selectedRoadIdx < 0) {
+          brushHint.textContent = "Drag a box to select units";
+          brushHint.classList.remove("hidden");
+        } else {
+          brushHint.classList.add("hidden");
+        }
+        return;
+      }
       if (state.selectedRoadIdx < 0) {
         brushHint.classList.remove("hidden");
       } else {
@@ -140,7 +169,7 @@
     document.addEventListener("click", updateBrushHintVisibility, true);
 
     canvas.addEventListener("mousedown", (evt) => {
-      if (state.selectedRoadIdx < 0) return; // brushing disabled in All-roads view
+      if (!UNIT_MODE && state.selectedRoadIdx < 0) return; // brushing disabled in All-roads view (segment mode only)
       if (evt.button !== 0) return;
       brushing = true;
       const rect = canvasWrap.getBoundingClientRect();
@@ -211,7 +240,7 @@
     // ------------------------------------------------------------------
     function handleBrushEnd(worldRect) {
       const roadIdx = state.selectedRoadIdx;
-      if (roadIdx < 0) return; // simplest robust option: single-road only (v1)
+      if (!UNIT_MODE && roadIdx < 0) return; // simplest robust option: single-road only (v1)
 
       const pitch = colPitch();
       let kMin = Math.floor((worldRect.x0 - MARGIN_LEFT) / pitch);
@@ -219,6 +248,48 @@
       kMin = Math.max(0, Math.min(state.numWindows - 1, kMin));
       kMax = Math.max(0, Math.min(state.numWindows - 1, kMax));
       if (kMin > kMax) return;
+
+      const windows = state.data.windows;
+      const yearStart = windows[kMin].start;
+      const yearEnd = windows[kMax].end;
+
+      if (UNIT_MODE) {
+        // Unit mode: select across every visible road (band; all roads in the
+        // overview, or just the selected one), collecting
+        // one unit key per matching segment/atom.
+        const pointsCache = getPointsCache();
+        const unitKeys = [];
+        const seen = new Set();
+        let truncated = false;
+        outer:
+        for (const rIdx of visibleRoadIndices()) {
+          const pts = pointsCache.get(rIdx);
+          if (!pts) continue;
+          const road = state.data.roads[rIdx];
+          for (let segIdx = 0; segIdx < pts.length; segIdx++) {
+            const segPts = pts[segIdx];
+            let inside = false;
+            for (const p of segPts) {
+              if (p.k < kMin || p.k > kMax) continue;
+              if (p.y >= worldRect.y0 && p.y <= worldRect.y1) { inside = true; break; }
+            }
+            if (!inside) continue;
+            const key = road.segments[segIdx].id;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            if (unitKeys.length >= MAX_SELECTED_UNITS) { truncated = true; break outer; }
+            unitKeys.push(key);
+          }
+        }
+        if (unitKeys.length === 0) return;
+
+        activeSelection = { x0: worldRect.x0, y0: worldRect.y0, x1: worldRect.x1, y1: worldRect.y1 };
+        selectionEl.classList.remove("hidden");
+        syncSelectionOverlay();
+
+        openUnitPanel(unitKeys, yearStart, yearEnd, truncated);
+        return;
+      }
 
       const pointsCache = getPointsCache();
       const pts = pointsCache.get(roadIdx);
@@ -235,10 +306,6 @@
         if (inside) selectedSegIdx.push(segIdx);
       }
       if (selectedSegIdx.length === 0) return;
-
-      const windows = state.data.windows;
-      const yearStart = windows[kMin].start;
-      const yearEnd = windows[kMax].end;
 
       activeSelection = { x0: worldRect.x0, y0: worldRect.y0, x1: worldRect.x1, y1: worldRect.y1 };
       selectionEl.classList.remove("hidden");
@@ -274,6 +341,23 @@
       });
     }
 
+    function openUnitPanel(unitKeys, yearStart, yearEnd, truncated) {
+      titleEl.textContent = "Unit drill-down";
+      subtitleEl.textContent =
+        `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected  |  ${yearStart}–${yearEnd}` +
+        (truncated ? `  |  showing first ${MAX_SELECTED_UNITS}` : "");
+      panel.classList.add("open");
+      panel.classList.remove("hidden");
+
+      chartWrapEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
+      ensureUnitSegments().then((d) => {
+        renderUnitChart(d, unitKeys, yearStart, yearEnd, truncated);
+      }).catch((err) => {
+        chartWrapEl.innerHTML = `<div class="evolens-loading">Failed to load unit_segments_full.json: ${err.message}</div>`;
+        console.error(err);
+      });
+    }
+
     // ------------------------------------------------------------------
     // Chart rendering (d3 / SVG). Small-scale (tens of segments), so plain
     // SVG is fine per spec - no canvas/WebGL needed here.
@@ -282,6 +366,68 @@
       ? d3.schemeTableau10
       : ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
          "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"];
+
+    // Shared z-score-per-series + per-year IQR/median motif computation, used
+    // by both segment-mode renderChart and unit-mode renderUnitChart.
+    function computeMotif(series) {
+      const zSeries = series.map((s) => {
+        const observed = s.values.filter((v) => v !== null);
+        const mean = observed.length ? observed.reduce((a, b) => a + b, 0) / observed.length : 0;
+        const variance = observed.length ? observed.reduce((a, b) => a + (b - mean) * (b - mean), 0) / observed.length : 0;
+        const std = Math.sqrt(variance);
+        const z = s.values.map((v) => (v === null ? null : (std > 0 ? (v - mean) / std : 0)));
+        return { id: s.id, values: z };
+      });
+
+      const nYears = series.length ? series[0].values.length : 0;
+      const motif = [];
+      for (let yi = 0; yi < nYears; yi++) {
+        const vals = zSeries.map((s) => s.values[yi]).filter((v) => v !== null).sort((a, b) => a - b);
+        motif.push(vals.length === 0
+          ? { p25: null, p50: null, p75: null }
+          : { p25: percentile(vals, 0.25), p50: percentile(vals, 0.5), p75: percentile(vals, 0.75) });
+      }
+      return motif;
+    }
+
+    function renderUnitChart(unitData, unitKeys, yearStart, yearEnd, truncated) {
+      chartWrapEl.innerHTML = "";
+      const years = unitData.years.filter((y) => y >= yearStart && y <= yearEnd);
+      if (years.length === 0) {
+        chartWrapEl.innerHTML = `<div class="evolens-loading">No year data in range.</div>`;
+        return;
+      }
+      const yearIdx0 = unitData.years.indexOf(years[0]);
+
+      const heading = document.createElement("div");
+      heading.className = "evolens-heatmap-heading";
+      heading.textContent = `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected` +
+        (truncated ? ` (showing first ${MAX_SELECTED_UNITS})` : "");
+      chartWrapEl.appendChild(heading);
+
+      const allSeries = [];
+      for (const unitKey of unitKeys) {
+        const unit = unitData.byKey.get(unitKey);
+        if (!unit) continue;
+
+        const items = unit.segments
+          .slice()
+          .sort((a, b) => a.begin - b.begin)
+          .map((seg) => ({
+            seg: { id: seg.id, begin: seg.begin, end: seg.end },
+            values: years.map((_, i) => (seg.scores[yearIdx0 + i] ?? null)),
+          }));
+
+        chartWrapEl.appendChild(buildRoadCard(unitKey, items, years));
+
+        for (const it of items) {
+          allSeries.push({ id: it.seg.id, values: it.values });
+        }
+      }
+
+      const motif = computeMotif(allSeries);
+      drawSvgChart(years, allSeries, motif);
+    }
 
     function renderChart(evData, road, segIdxList, yearStart, yearEnd) {
       chartWrapEl.innerHTML = "";
