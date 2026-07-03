@@ -1247,6 +1247,11 @@
   }
 
   roadSearchEl.addEventListener("input", () => {
+    if (roadSearchEl.value.trim() === "" && state.selectedRoadIdx !== -1) {
+      state.selectedRoadIdx = -1;
+      state.hover = null;
+      render();
+    }
     renderDropdown(roadSearchEl.value);
     roadDropdownEl.classList.remove("hidden");
   });
