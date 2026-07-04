@@ -86,6 +86,10 @@ def wscore(seg, k):
     v = SCORES[seg, wcols[k]]
     return round(float(np.nanmean(v)), 1) if np.isfinite(v).any() else None
 
+def yvals(seg, k):
+    return [round(float(SCORES[seg, c]), 1) if np.isfinite(SCORES[seg, c]) else None
+            for c in wcols[k]]
+
 roadbed = {}; county = {}; marker = {}; begin_pos = {}
 for row in csv.DictReader(open("sections_meta.csv", encoding="utf-8")):
     p = pos.get(row["section_id"])
@@ -115,7 +119,8 @@ for k, w in enumerate(win_meta):
 # per segment: one entry per eligible window, s = kept session id or None
 seg_win = {}
 for m, ks in seg_eligible.items():
-    seg_win[m] = [{"k": k, "s": seg_session[m].get(k), "v": wscore(m, k)} for k in ks]
+    seg_win[m] = [{"k": k, "s": seg_session[m].get(k), "v": wscore(m, k), "yv": yvals(m, k)}
+                  for k in ks]
 
 roads = collections.defaultdict(list)
 if RULE == "county":
