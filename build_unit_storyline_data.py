@@ -35,8 +35,10 @@ def build_storyline(series, sessions):
             cols = wcols[wk]
             lvl = _win_mean(u["level"], cols)
             spv = _win_mean(u["spread"], cols)
+            yv = [level_to_color_score(u["level"][c]) for c in cols]
             win.append({"k": wk, "s": sess_of[wk].get(ui),
                         "v": level_to_color_score(lvl),
+                        "yv": yv,
                         "sp": round(spv, 3) if spv is not None else None})
         bands[u["county"]].append({"id": u["key"], "marker": 0.0,
                                    "roadbed": u["roadbed"], "county": u["county"],

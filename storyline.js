@@ -137,6 +137,18 @@
     return hasD3 ? d3.interpolateRdYlGn(t) : fallbackRdYlGn(t);
   }
 
+  // Per-year PMIS condition palette, copied verbatim from heatmap.js so the
+  // Storyline year-cells match the heatmap view. Used only in condition mode.
+  function pmisCategoryColor(score) {
+    if (score === null || score === undefined || isNaN(score)) return "#999999";
+    if (score >= 90) return "rgb(21,128,61)";   // Very Good
+    if (score >= 70) return "rgb(34,197,94)";   // Good
+    if (score >= 50) return "rgb(234,179,8)";   // Fair
+    if (score >= 35) return "rgb(249,115,22)";  // Poor
+    if (score < 1)   return "rgb(200,200,200)"; // Invalid
+    return "rgb(239,68,68)";                     // Very Poor
+  }
+
   const CATEGORICAL = hasD3 && d3.schemeTableau10
     ? d3.schemeTableau10
     : ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
@@ -800,7 +812,7 @@
         const relY = geo.segY[i].get(w.k);
         if (relY === undefined) continue; // shouldn't happen, but guard
         const colorTrackId = w.s == null ? -1 : (struct.nodeColorTrack.get(`${w.k}:s:${w.s}`) ?? -1);
-        pts.push({ k: w.k, v: w.v, trackId: colorTrackId, y: yOffset + relY });
+        pts.push({ k: w.k, v: w.v, yv: w.yv, trackId: colorTrackId, y: yOffset + relY });
       }
       out[i] = pts;
     }
@@ -953,14 +965,15 @@
       }
       const barWidth = Math.max(1.4, state.rowPx * 0.7);
       const connectorWidth = Math.max(0.7, barWidth * 0.5);
-      ctx.lineCap = "round";
       for (const bucket of buckets.values()) {
         ctx.strokeStyle = bucket.color;
         ctx.globalAlpha = dimAlpha * (bucket.faded ? FADE_ALPHA : 1);
         ctx.lineWidth = barWidth;
+        ctx.lineCap = "butt";           // hard edges between per-year cells
         ctx.stroke(bucket.bars);
         ctx.globalAlpha = dimAlpha * 0.55 * (bucket.faded ? FADE_ALPHA : 1);
         ctx.lineWidth = connectorWidth;
+        ctx.lineCap = "round";          // smooth bezier connector ends
         ctx.stroke(bucket.connectors);
       }
       ctx.globalAlpha = 1;
@@ -989,9 +1002,20 @@
         const segPts = pts[segIdx];
         for (let i = 0; i < segPts.length; i++) {
           const p = segPts[i];
-          const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
-          const rgba = colorToFloats(color, p.trackId < 0 ? FADE_ALPHA : 1);
-          bars.push({ x0: colX(p.k) - halfBar, x1: colX(p.k) + halfBar, y: p.y, rgba });
+          const x0 = colX(p.k) - halfBar;
+          if (state.colorMode !== "cohort" && p.yv && p.yv.length) {
+            // Condition mode: one hard-edged cell per year in the window.
+            const cw = (2 * halfBar) / p.yv.length;
+            for (let j = 0; j < p.yv.length; j++) {
+              const rgba = colorToFloats(pmisCategoryColor(p.yv[j]), p.trackId < 0 ? FADE_ALPHA : 1);
+              bars.push({ x0: x0 + j * cw, x1: x0 + (j + 1) * cw, y: p.y, rgba });
+            }
+          } else {
+            // Cohort mode, or data without per-year yv: single flat bar (unchanged).
+            const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
+            const rgba = colorToFloats(color, p.trackId < 0 ? FADE_ALPHA : 1);
+            bars.push({ x0, x1: colX(p.k) + halfBar, y: p.y, rgba });
+          }
         }
         for (let i = 0; i < segPts.length - 1; i++) {
           const a = segPts[i], b = segPts[i + 1];
@@ -1036,12 +1060,21 @@
     const halfBar = state.colW / 2;
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
-      const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
       const faded = p.trackId < 0;
-      const { bars } = bucketFor(buckets, color, faded);
-      const x0 = colX(p.k) - halfBar, x1 = colX(p.k) + halfBar;
-      bars.moveTo(x0, p.y);
-      bars.lineTo(x1, p.y);
+      const x0 = colX(p.k) - halfBar;
+      if (state.colorMode !== "cohort" && p.yv && p.yv.length) {
+        const cw = (2 * halfBar) / p.yv.length;
+        for (let j = 0; j < p.yv.length; j++) {
+          const { bars } = bucketFor(buckets, pmisCategoryColor(p.yv[j]), faded);
+          bars.moveTo(x0 + j * cw, p.y);
+          bars.lineTo(x0 + (j + 1) * cw, p.y);
+        }
+      } else {
+        const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
+        const { bars } = bucketFor(buckets, color, faded);
+        bars.moveTo(x0, p.y);
+        bars.lineTo(colX(p.k) + halfBar, p.y);
+      }
     }
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1];
