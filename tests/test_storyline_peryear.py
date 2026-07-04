@@ -37,37 +37,46 @@ class TestPerYear(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data = regenerate("hwcounty")
+        cls.data_county = regenerate("county")
         cls.win5 = load_windows_w5()
         cls.sections, cls.years, cls.rows = load_matrix()
         cls.yidx = {y: i for i, y in enumerate(cls.years)}
         cls.pos = {s: i for i, s in enumerate(cls.sections)}
 
-    def test_windows_relabeled_to_middle_year_start_eq_end(self):
+    def _check_windows_relabeled_to_middle_year_start_eq_end(self, data):
         w5 = self.win5["windows"]
-        self.assertEqual(len(self.data["windows"]), len(w5))
-        for k, w in enumerate(self.data["windows"]):
+        self.assertEqual(len(data["windows"]), len(w5))
+        for k, w in enumerate(data["windows"]):
             expected_year = w5[k]["start"] + 2
             self.assertEqual(w["k"], k)
             self.assertEqual(w["start"], expected_year)
             self.assertEqual(w["end"], expected_year)
             self.assertEqual(w["label"], str(expected_year))
 
-    def test_edge_years_never_appear(self):
-        middle_years = {w["end"] for w in self.data["windows"]}
+    def test_windows_relabeled_to_middle_year_start_eq_end(self):
+        self._check_windows_relabeled_to_middle_year_start_eq_end(self.data)
+        self._check_windows_relabeled_to_middle_year_start_eq_end(self.data_county)
+
+    def _check_edge_years_never_appear(self, data):
+        middle_years = {w["end"] for w in data["windows"]}
         self.assertNotIn(self.years[0], middle_years)
         self.assertNotIn(self.years[1], middle_years)
         self.assertNotIn(self.years[-1], middle_years)
         self.assertNotIn(self.years[-2], middle_years)
 
-    def test_v_matches_segment_own_year_value_not_window_mean(self):
+    def test_edge_years_never_appear(self):
+        self._check_edge_years_never_appear(self.data)
+        self._check_edge_years_never_appear(self.data_county)
+
+    def _check_v_matches_segment_own_year_value_not_window_mean(self, data):
         checked = 0
-        for road in self.data["roads"]:
+        for road in data["roads"]:
             for seg in road["segments"]:
                 p = self.pos.get(seg["id"])
                 if p is None:
                     continue
                 for w in seg["win"]:
-                    year = self.data["windows"][w["k"]]["end"]
+                    year = data["windows"][w["k"]]["end"]
                     raw = self.rows[p][self.yidx[year]]
                     if np.isnan(raw):
                         self.assertIsNone(w["v"])
@@ -76,14 +85,22 @@ class TestPerYear(unittest.TestCase):
                     checked += 1
         self.assertGreater(checked, 0)
 
-    def test_no_yv_field_present(self):
+    def test_v_matches_segment_own_year_value_not_window_mean(self):
+        self._check_v_matches_segment_own_year_value_not_window_mean(self.data)
+        self._check_v_matches_segment_own_year_value_not_window_mean(self.data_county)
+
+    def _check_no_yv_field_present(self, data):
         checked = 0
-        for road in self.data["roads"]:
+        for road in data["roads"]:
             for seg in road["segments"]:
                 for w in seg["win"]:
                     self.assertNotIn("yv", w)
                     checked += 1
         self.assertGreater(checked, 0)
+
+    def test_no_yv_field_present(self):
+        self._check_no_yv_field_present(self.data)
+        self._check_no_yv_field_present(self.data_county)
 
 
 if __name__ == "__main__":
