@@ -11,7 +11,7 @@
  * stacked position in every window it has data for.
  *
  * No build step. Plain ES2017+. d3 is used only for color scales/categorical
- * palettes (loaded from CDN in index.html).
+ * palettes (loaded from CDN in storyline.html).
  * ==========================================================================*/
 
 (function () {
@@ -24,6 +24,7 @@
   const MARGIN_TOP = 10;    // top margin before first road
   const HOVER_HIT_PX = 7;   // hover hit-test tolerance in px
   const BARYCENTER_SWEEPS = 6; // number of full forward/backward sweeps
+  const hasD3 = typeof d3 !== "undefined";
 
   // Browsers silently produce a BLANK canvas (no error) once a backing-store
   // dimension exceeds roughly 32767px (Chrome/Firefox limit; area-capped too).
@@ -46,10 +47,12 @@
   const roadSearchEl = document.getElementById("roadSearch");
   const roadDropdownEl = document.getElementById("roadDropdown");
   const colorModeEl = document.getElementById("colorMode");
+  const colorLegendEl = document.getElementById("colorLegend");
   const rowPxEl = document.getElementById("rowPx");
   const laneGapEl = document.getElementById("laneGap");
   const roadGapEl = document.getElementById("roadGap");
   const colWEl = document.getElementById("colW");
+  const colGapEl = document.getElementById("colGap");
 
   // ------------------------------------------------------------------------
   // Global state
@@ -65,12 +68,14 @@
     laneGap: 48,
     roadGap: 28,
     colW: 62,
+    colGap: 24,
     hover: null,          // { roadIdx, segIdx }
     dpr: window.devicePixelRatio || 1,
     scrollLeft: 0,        // canvasWrap.scrollLeft mirror, used to translate drawing
     scrollTop: 0,         // canvasWrap.scrollTop mirror
     glActive: false,      // true once a WebGL context was successfully created
   };
+  updateColorLegend(); // default mode is "condition"
 
   // Created once; null if WebGL is unavailable (old browser / no GPU), in
   // which case we fall back to the original Canvas-2D bar/connector path.
@@ -110,7 +115,11 @@
   // ------------------------------------------------------------------------
   // Color helpers
   // ------------------------------------------------------------------------
-  const hasD3 = typeof d3 !== "undefined";
+
+  // Per-page bar encoding for condition color mode. Default "cells" keeps the
+  // discrete per-year PMIS category cells; "gradient" (units page) shades each
+  // window bar with a continuous light->dark blue condition gradient.
+  const BAR_ENCODING = window.STORYLINE_BAR_ENCODING || "cells";
 
   // Fallback RdYlGn-ish interpolator if d3 failed to load (offline safety).
   function fallbackRdYlGn(t) {
@@ -154,6 +163,21 @@
     : ["#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
        "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"];
 
+  // Single-hue blue gradient shade for a per-year condition score. Darker =
+  // worse condition (light blue = good ~100, dark blue = poor ~0). Used only
+  // on pages that opt into the "gradient" bar encoding (units page).
+  function shadeBlue(score) {
+    if (score === null || score === undefined || isNaN(score)) return "#999999";
+    const t = Math.max(0, Math.min(1, (100 - score) / 100)); // 0 good -> 1 poor
+    if (hasD3) return d3.interpolateBlues(t);
+    // Non-d3 fallback: linear interpolate light blue -> dark blue.
+    const lo = [198, 219, 239], hi = [8, 48, 107];
+    const r = lo[0] + t * (hi[0] - lo[0]);
+    const g = lo[1] + t * (hi[1] - lo[1]);
+    const b = lo[2] + t * (hi[2] - lo[2]);
+    return `rgb(${r | 0},${g | 0},${b | 0})`;
+  }
+
   const UNAFF_GRAY = "#bbbbbb"; // neutral hue when a segment has no persistent color-track
   const FADE_ALPHA = 0.5; // opacity for unaffiliated (no-cohort) units, both render paths
 
@@ -166,6 +190,36 @@
     if (!hasD3) return base;
     const c = d3.hsl(base);
     c.l = 0.30 + t * 0.45; // darker for low v, lighter for high v
+    return c.toString();
+  }
+
+  function highwayColor(roadbed, v) {
+    if (!roadbed) return shadeGray(v); // no roadbed: no highway hue
+    let hash = 0;
+    for (let i = 0; i < roadbed.length; i++) hash = (hash * 31 + roadbed.charCodeAt(i)) | 0;
+    const base = CATEGORICAL[Math.abs(hash) % CATEGORICAL.length];
+    if (v === null || v === undefined || isNaN(v)) return base;
+    const t = Math.max(0, Math.min(100, v)) / 100;
+    if (!hasD3) return base;
+    const c = d3.hsl(base);
+    c.l = 0.30 + t * 0.45;
+    return c.toString();
+  }
+
+  const PAVTYPE_COLORS = {
+    "A - ASPHALTIC CONCRETE PAVEMENT (ACP)": "#4a4a4a",
+    "C - CONTINUOUSLY REINFORCED CONCRETE PAVEMENT (CRCP)": "#6b8caf",
+    "J - JOINTED CONCRETE PAVEMENT (JCP)": "#c9a66b",
+  };
+
+  function pavTypeColor(pavtype, v) {
+    const base = PAVTYPE_COLORS[pavtype];
+    if (!base) return shadeGray(v); // blank/unknown/unrecognized: no pavtype hue
+    if (v === null || v === undefined || isNaN(v)) return base;
+    const t = Math.max(0, Math.min(100, v)) / 100;
+    if (!hasD3) return base;
+    const c = d3.hsl(base);
+    c.l = 0.30 + t * 0.45;
     return c.toString();
   }
 
@@ -301,6 +355,27 @@
       for (let i = 0; i < 6; i++) colors.push(rgba[0], rgba[1], rgba[2], rgba[3]);
     }
 
+    // Like pushQuad, but assigns per-vertex colors so a horizontal bar shows a
+    // left->right gradient. The 6 pushed vertices (in pushQuad's order) are:
+    //   a(x0), b(x0), c(x1), b(x0), d(x1), c(x1)  => L,L,R,L,R,R
+    // so the two x0-end vertices get rgbaLeft and the x1-end vertices rgbaRight.
+    function pushQuadGradient(positions, colors, x0, y0, x1, y1, thickness, rgbaLeft, rgbaRight) {
+      const dx = x1 - x0, dy = y1 - y0;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = (-dy / len) * (thickness / 2);
+      const ny = (dx / len) * (thickness / 2);
+
+      const ax = x0 + nx, ay = y0 + ny;
+      const bx = x0 - nx, by = y0 - ny;
+      const cx = x1 + nx, cy = y1 + ny;
+      const dxp = x1 - nx, dyp = y1 - ny;
+
+      positions.push(ax, ay, bx, by, cx, cy, bx, by, dxp, dyp, cx, cy);
+      const L = rgbaLeft, R = rgbaRight;
+      const seq = [L, L, R, L, R, R];
+      for (const c of seq) colors.push(c[0], c[1], c[2], c[3]);
+    }
+
     // Sample a cubic bezier (matching the existing connector math in
     // appendLines: control points at (midX, ay) and (midX, by)) into a short
     // line strip of straight segments, each expanded to a quad.
@@ -324,7 +399,11 @@
       const positions = [];
       const colors = [];
       for (const b of bars) {
-        pushQuad(positions, colors, b.x0, b.y, b.x1, b.y, barThickness, b.rgba);
+        if (b.rgba2) {
+          pushQuadGradient(positions, colors, b.x0, b.y, b.x1, b.y, barThickness, b.rgba, b.rgba2);
+        } else {
+          pushQuad(positions, colors, b.x0, b.y, b.x1, b.y, barThickness, b.rgba);
+        }
       }
       barVertexCount = positions.length / 2;
       for (const c of connectors) {
@@ -630,6 +709,46 @@
       memberWithinGroupOrder[k] = memOrder;
     }
 
+    // Highway color mode: keep same-roadbed segments contiguous within each
+    // group across all windows. Clusters (one per roadbed) are ordered by mean
+    // previous-window row; members within a cluster stay in marker order.
+    function orderWindowByPrevHighway(k, prevRows) {
+      const groups = groupsAtK[k];
+      const memOrder = new Map();
+      for (const g of groups) {
+        const clusters = new Map();
+        for (const segIdx of g.members) {
+          const rb = roadbedOf(segIdx);
+          if (!clusters.has(rb)) clusters.set(rb, []);
+          clusters.get(rb).push(segIdx);
+        }
+        const clusterList = [];
+        for (const members of clusters.values()) {
+          members.sort((a, b) => markerOf(a) - markerOf(b));
+          let sum = 0, cnt = 0;
+          for (const segIdx of members) {
+            if (prevRows.has(segIdx)) { sum += prevRows.get(segIdx); cnt++; }
+          }
+          const meanRow = cnt > 0 ? sum / cnt : markerFallbackScalar(members);
+          clusterList.push({ members, meanRow });
+        }
+        clusterList.sort((a, b) => a.meanRow - b.meanRow);
+        const sorted = [];
+        for (const c of clusterList) for (const segIdx of c.members) sorted.push(segIdx);
+        sorted.forEach((segIdx, pos) => memOrder.set(segIdx, pos));
+        g._sortedMembers = sorted;
+        let sum = 0, cnt = 0;
+        for (const segIdx of sorted) {
+          if (prevRows.has(segIdx)) { sum += prevRows.get(segIdx); cnt++; }
+        }
+        g._meanMarker = cnt > 0 ? sum / cnt : markerFallbackScalar(g._sortedMembers);
+        g._hasPrev = cnt > 0;
+      }
+      const ordered = groups.slice().sort((a, b) => a._meanMarker - b._meanMarker);
+      order[k] = ordered;
+      memberWithinGroupOrder[k] = memOrder;
+    }
+
     // Fallback scalar for groups/members with no previous-window position:
     // map marker into the same numeric range as prevRows by marker rank
     // among ALL segments on the road, scaled to roughly [0, maxPrevRow].
@@ -658,11 +777,15 @@
       return meanRank / denom; // small scalar; fine as relative ordering key among similar groups
     }
 
+    // In highway color mode, later windows cluster same-roadbed members;
+    // otherwise pure barycenter continuity. (window 0 is already roadbed-clustered)
+    const orderFn = state.colorMode === "highway" ? orderWindowByPrevHighway : orderWindowByPrev;
+
     // Initial pass: window 0 by marker, then forward by barycenter of prev.
     orderWindowByMarker(0);
     for (let k = 1; k < numWindows; k++) {
       const prevRows = rowsForWindow(k - 1);
-      orderWindowByPrev(k, prevRows);
+      orderFn(k, prevRows);
     }
 
     // Additional sweeps, alternating direction, refining using whichever
@@ -672,12 +795,12 @@
       if (forward) {
         for (let k = 1; k < numWindows; k++) {
           const prevRows = rowsForWindow(k - 1);
-          orderWindowByPrev(k, prevRows);
+          orderFn(k, prevRows);
         }
       } else {
         for (let k = numWindows - 2; k >= 0; k--) {
           const nextRows = rowsForWindow(k + 1);
-          orderWindowByPrev(k, nextRows);
+          orderFn(k, nextRows);
         }
       }
     }
@@ -763,11 +886,10 @@
   // top of colW) purely so the S-curve connector has visible room to bow
   // through between one bar's right edge and the next bar's left edge. Bars
   // themselves still span the FULL colW - this space is genuinely additional,
-  // not carved out of the bar width.
-  const COL_GAP = 24;
-
+  // not carved out of the bar width. Controlled live by the "Window gap"
+  // slider via state.colGap.
   function colPitch() {
-    return state.colW + COL_GAP;
+    return state.colW + state.colGap;
   }
 
   function colX(k) {
@@ -812,7 +934,7 @@
         const relY = geo.segY[i].get(w.k);
         if (relY === undefined) continue; // shouldn't happen, but guard
         const colorTrackId = w.s == null ? -1 : (struct.nodeColorTrack.get(`${w.k}:s:${w.s}`) ?? -1);
-        pts.push({ k: w.k, v: w.v, yv: w.yv, trackId: colorTrackId, y: yOffset + relY });
+        pts.push({ k: w.k, v: w.v, yv: w.yv, trackId: colorTrackId, roadbed: segments[i].roadbed || "", pavtype: segments[i].pavtype || "", y: yOffset + relY });
       }
       out[i] = pts;
     }
@@ -957,10 +1079,11 @@
       // --- Fallback: original Canvas-2D bar/connector rendering ---------
       const dimAlpha = hoverActive ? 0.12 : 1;
       const buckets = new Map(); // colorStr -> Path2D
+      const gradientBars = []; // units page: per-bar linear-gradient strokes
       for (const [roadIdx, pts] of pointsCache) {
         for (let segIdx = 0; segIdx < pts.length; segIdx++) {
           if (hoverActive && state.hover.roadIdx === roadIdx && state.hover.segIdx === segIdx) continue;
-          appendLines(roadIdx, pts[segIdx], buckets);
+          appendLines(roadIdx, pts[segIdx], buckets, gradientBars);
         }
       }
       const barWidth = Math.max(1.4, state.rowPx * 0.7);
@@ -971,10 +1094,28 @@
         ctx.lineWidth = barWidth;
         ctx.lineCap = "butt";           // hard edges between per-year cells
         ctx.stroke(bucket.bars);
-        ctx.globalAlpha = dimAlpha * 0.55 * (bucket.faded ? FADE_ALPHA : 1);
+        ctx.globalAlpha = dimAlpha * 0.8 * (bucket.faded ? FADE_ALPHA : 1);
         ctx.lineWidth = connectorWidth;
         ctx.lineCap = "round";          // smooth bezier connector ends
         ctx.stroke(bucket.connectors);
+      }
+      // Units gradient bars: each drawn as its own light->dark blue gradient
+      // stroke with a color stop at every year fraction.
+      ctx.lineWidth = barWidth;
+      ctx.lineCap = "butt";
+      for (const gb of gradientBars) {
+        const grad = ctx.createLinearGradient(gb.x0, 0, gb.x1, 0);
+        const N = gb.yv.length;
+        for (let j = 0; j < N; j++) {
+          const stop = N === 1 ? 0 : j / (N - 1);
+          grad.addColorStop(stop, shadeBlue(gb.yv[j]));
+        }
+        ctx.strokeStyle = grad;
+        ctx.globalAlpha = dimAlpha * (gb.faded ? FADE_ALPHA : 1);
+        ctx.beginPath();
+        ctx.moveTo(gb.x0, gb.y);
+        ctx.lineTo(gb.x1, gb.y);
+        ctx.stroke();
       }
       ctx.globalAlpha = 1;
     }
@@ -1003,16 +1144,29 @@
         for (let i = 0; i < segPts.length; i++) {
           const p = segPts[i];
           const x0 = colX(p.k) - halfBar;
-          if (state.colorMode !== "cohort" && p.yv && p.yv.length) {
-            // Condition mode: one hard-edged cell per year in the window.
-            const cw = (2 * halfBar) / p.yv.length;
-            for (let j = 0; j < p.yv.length; j++) {
-              const rgba = colorToFloats(pmisCategoryColor(p.yv[j]), p.trackId < 0 ? FADE_ALPHA : 1);
-              bars.push({ x0: x0 + j * cw, x1: x0 + (j + 1) * cw, y: p.y, rgba });
+          if (state.colorMode !== "cohort" && state.colorMode !== "highway" && state.colorMode !== "pavtype" && p.yv && p.yv.length) {
+            const N = p.yv.length;
+            const cw = (2 * halfBar) / N;
+            const alpha = p.trackId < 0 ? FADE_ALPHA : 1;
+            if (BAR_ENCODING === "gradient") {
+              // Units page: continuous light->dark blue gradient. Each year
+              // sub-quad's left color = shadeBlue(yv[j]), right = shadeBlue(yv[j+1]);
+              // matching boundary colors make the whole bar a smooth gradient.
+              for (let j = 0; j < N; j++) {
+                const left = colorToFloats(shadeBlue(p.yv[j]), alpha);
+                const right = j < N - 1 ? colorToFloats(shadeBlue(p.yv[j + 1]), alpha) : left;
+                bars.push({ x0: x0 + j * cw, x1: x0 + (j + 1) * cw, y: p.y, rgba: left, rgba2: right });
+              }
+            } else {
+              // Condition mode: one hard-edged cell per year in the window.
+              for (let j = 0; j < N; j++) {
+                const rgba = colorToFloats(pmisCategoryColor(p.yv[j]), alpha);
+                bars.push({ x0: x0 + j * cw, x1: x0 + (j + 1) * cw, y: p.y, rgba });
+              }
             }
           } else {
             // Cohort mode, or data without per-year yv: single flat bar (unchanged).
-            const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
+            const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : conditionColor(p.v);
             const rgba = colorToFloats(color, p.trackId < 0 ? FADE_ALPHA : 1);
             bars.push({ x0, x1: colX(p.k) + halfBar, y: p.y, rgba });
           }
@@ -1038,7 +1192,7 @@
   function drawGL() {
     const hoverActive = !!state.hover;
     const barAlpha = hoverActive ? 0.12 : 1;
-    const connectorAlpha = barAlpha * 0.55;
+    const connectorAlpha = barAlpha * 0.8;
     glRenderer.draw(state.viewportW, state.viewportH, state.scrollLeft, state.scrollTop, barAlpha, connectorAlpha);
   }
 
@@ -1056,13 +1210,20 @@
     return b;
   }
 
-  function appendLines(roadIdx, pts, buckets) {
+  function appendLines(roadIdx, pts, buckets, gradientBars) {
     const halfBar = state.colW / 2;
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
       const faded = p.trackId < 0;
       const x0 = colX(p.k) - halfBar;
-      if (state.colorMode !== "cohort" && p.yv && p.yv.length) {
+      if (state.colorMode !== "cohort" && state.colorMode !== "highway" && state.colorMode !== "pavtype" && p.yv && p.yv.length) {
+        if (BAR_ENCODING === "gradient" && gradientBars) {
+          // Units page: collect for a per-bar linear-gradient stroke (drawn
+          // outside the solid-color Path2D buckets). Skips batching, which is
+          // fine for the units page's segment count.
+          gradientBars.push({ x0, x1: colX(p.k) + halfBar, y: p.y, yv: p.yv, faded });
+          continue;
+        }
         const cw = (2 * halfBar) / p.yv.length;
         for (let j = 0; j < p.yv.length; j++) {
           const { bars } = bucketFor(buckets, pmisCategoryColor(p.yv[j]), faded);
@@ -1070,7 +1231,7 @@
           bars.lineTo(x0 + (j + 1) * cw, p.y);
         }
       } else {
-        const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
+        const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : conditionColor(p.v);
         const { bars } = bucketFor(buckets, color, faded);
         bars.moveTo(x0, p.y);
         bars.lineTo(colX(p.k) + halfBar, p.y);
@@ -1093,6 +1254,9 @@
   function edgeColor(roadIdx, a, b) {
     const v = avgV(a.v, b.v);
     if (state.colorMode === "cohort") return cohortColor(a.trackId, v);
+    if (state.colorMode === "highway") return highwayColor(a.roadbed, v);
+    if (state.colorMode === "pavtype") return pavTypeColor(a.pavtype, v);
+    if (BAR_ENCODING === "gradient") return shadeBlue(v); // units page: match blue bars
     return conditionColor(v);
   }
 
@@ -1116,10 +1280,22 @@
     ctx.lineWidth = barWidth;
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
-      ctx.strokeStyle = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : conditionColor(p.v);
+      const x0 = colX(p.k) - halfBar, x1 = colX(p.k) + halfBar;
+      if (BAR_ENCODING === "gradient" && state.colorMode !== "cohort" && state.colorMode !== "highway" && state.colorMode !== "pavtype" && p.yv && p.yv.length) {
+        // Units page: match the normal per-year blue gradient bars.
+        const grad = ctx.createLinearGradient(x0, 0, x1, 0);
+        const N = p.yv.length;
+        for (let j = 0; j < N; j++) {
+          const stop = N === 1 ? 0 : j / (N - 1);
+          grad.addColorStop(stop, shadeBlue(p.yv[j]));
+        }
+        ctx.strokeStyle = grad;
+      } else {
+        ctx.strokeStyle = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : conditionColor(p.v);
+      }
       ctx.beginPath();
-      ctx.moveTo(colX(p.k) - halfBar, p.y);
-      ctx.lineTo(colX(p.k) + halfBar, p.y);
+      ctx.moveTo(x0, p.y);
+      ctx.lineTo(x1, p.y);
       ctx.stroke();
     }
 
@@ -1302,10 +1478,50 @@
     }
   });
 
+  // Floating color legend. Only "condition" (gradient) and "pavtype" (fixed
+  // categories) have a meaningful legend; "cohort"/"highway" use arbitrary
+  // per-track hues, so the panel is hidden there.
+  function updateColorLegend() {
+    const mode = state.colorMode;
+    if (mode === "condition") {
+      const stops = [0, 25, 50, 75, 100].map((v) => conditionColor(v));
+      colorLegendEl.innerHTML =
+        `<div class="legend-gradient-bar" style="background:linear-gradient(to right,${stops.join(",")})"></div>` +
+        `<div class="legend-gradient-labels"><span>Poor</span><span>Good</span></div>`;
+      colorLegendEl.classList.remove("hidden");
+    } else if (mode === "pavtype") {
+      const rows = [
+        ["A - ASPHALTIC CONCRETE PAVEMENT (ACP)", "Asphalt (ACP)"],
+        ["C - CONTINUOUSLY REINFORCED CONCRETE PAVEMENT (CRCP)", "Concrete, continuous (CRCP)"],
+        ["J - JOINTED CONCRETE PAVEMENT (JCP)", "Concrete, jointed (JCP)"],
+      ];
+      let html = rows.map(([key, label]) =>
+        `<div class="legend-swatch-row"><span class="legend-swatch" style="background:${PAVTYPE_COLORS[key]}"></span>${label}</div>`
+      ).join("");
+      html += `<div class="legend-swatch-row"><span class="legend-swatch" style="background:${UNAFF_GRAY}"></span>Unknown</div>`;
+      colorLegendEl.innerHTML = html;
+      colorLegendEl.classList.remove("hidden");
+    } else {
+      colorLegendEl.classList.add("hidden");
+    }
+  }
+
   colorModeEl.addEventListener("change", () => {
-    state.colorMode = colorModeEl.value;
-    if (glRenderer) rebuildGLGeometry(); // colors baked into GL vertex buffer
-    draw();
+    const oldMode = state.colorMode;
+    const newMode = colorModeEl.value;
+    state.colorMode = newMode;
+    updateColorLegend();
+    // Highway mode changes segment ordering within groups, so structures must
+    // be rebuilt when toggling into or out of it; other mode switches only
+    // affect baked-in vertex colors.
+    if ((oldMode === "highway") !== (newMode === "highway") && state.data) {
+      buildAllStructures();
+      buildGeometry();
+      render();
+    } else {
+      if (glRenderer) rebuildGLGeometry(); // colors baked into GL vertex buffer
+      draw();
+    }
   });
 
   function bindSlider(el, outId, key, isInt) {
@@ -1314,6 +1530,8 @@
       const val = isInt ? parseInt(el.value, 10) : parseFloat(el.value);
       state[key] = val;
       out.textContent = val;
+    });
+    el.addEventListener("change", () => {
       if (key === "rowPx" || key === "laneGap" || key === "roadGap") {
         buildGeometry();
       }
@@ -1326,6 +1544,7 @@
   bindSlider(laneGapEl, "laneGapOut", "laneGap", true);
   bindSlider(roadGapEl, "roadGapOut", "roadGap", true);
   bindSlider(colWEl, "colWOut", "colW", true);
+  bindSlider(colGapEl, "colGapOut", "colGap", true);
 
   window.addEventListener("resize", () => {
     if (state.data) render();

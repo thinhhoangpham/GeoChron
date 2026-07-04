@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Storyline Visualization — by highway + county (original)</title>
+<title>Storyline Visualization — by county only (experimental)</title>
 <link rel="stylesheet" href="storyline.css">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script>window.STORYLINE_DATA_FILE = "storyline_data_hwcounty.json";</script>
+<script>window.STORYLINE_DATA_FILE = "storyline_data_county.json";</script>
 </head>
 <body>
   <header id="toolbar">
@@ -13,7 +13,7 @@
       <div class="ctl">
         <span>Dataset</span>
         <div style="font-size:13px; padding:4px 0;">
-          By highway + county (original) — <a href="index_county.html">compare: by county only</a>
+          By county only (experimental) — <a href="storyline.html">compare: by highway + county (original)</a>
         </div>
       </div>
       <label class="ctl">
@@ -27,6 +27,8 @@
         <select id="colorMode">
           <option value="condition" selected>Condition (RdYlGn)</option>
           <option value="cohort">Cohort hue</option>
+          <option value="highway">Highway hue</option>
+          <option value="pavtype">Pavement type</option>
         </select>
       </label>
     </div>
@@ -48,8 +50,12 @@
         <span>Column width <output id="colWOut">62</output>px</span>
         <input id="colW" type="range" min="20" max="160" step="2" value="62">
       </label>
+      <label class="ctl slider">
+        <span>Window gap <output id="colGapOut">24</output>px</span>
+        <input id="colGap" type="range" min="0" max="160" step="2" value="24">
+      </label>
     </div>
-    <div id="status" class="status">Loading storyline_data_hwcounty.json...</div>
+    <div id="status" class="status">Loading storyline_data_county.json...</div>
   </header>
 
   <div id="scrollArea">
@@ -68,6 +74,7 @@
   </div>
 
   <div id="tooltip" class="hidden"></div>
+  <div id="colorLegend" class="hidden"></div>
 
   <script src="storyline.js"></script>
   <script src="heatmap.js"></script>

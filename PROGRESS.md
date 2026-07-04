@@ -31,7 +31,7 @@ adapting the GeoChron paper (`paper.txt`) to Texas PMIS pavement data (`PMIS_mer
   not roadbed alone — 1,112 bands / 14,810 segments. (Sessions were always scoped to one
   roadbed+county pair; this just made the *display* grouping match that, so no band mixes
   counties a highway passes through.)
-- `index.html` + `storyline.js` + `storyline.css` — real static app (no Python-generated HTML).
+- `storyline.html` + `storyline.js` + `storyline.css` — real static app (no Python-generated HTML).
   Loads `storyline_data.json` via fetch. In-browser: per-window barycenter-sweep grouping/
   ordering → stacked into y-positions → each window drawn as a full-width bar, consecutive
   windows joined by a thin Bezier connector (no anchors/interpolation/dot hacks). Rendering
@@ -39,7 +39,7 @@ adapting the GeoChron paper (`paper.txt`) to Texas PMIS pavement data (`PMIS_mer
   Controls: road search/filter, color mode (condition RdYlGn / cohort categorical hue), 4
   spacing sliders (row height, lane gap, road gap, column width).
 - Serve: `cd C:\Users\Owner\Documents\GeoChron && python -m http.server 3000` →
-  `http://localhost:3000/index.html`.
+  `http://localhost:3000/storyline.html`.
 - Fixed bugs (see git-less history below): hover hit-testing missing scroll offset; WebGL
   single draw call silently failing above ~millions of vertices (now chunked); single-road
   view using the wrong (world-stacked) y-offset, rendering blank.

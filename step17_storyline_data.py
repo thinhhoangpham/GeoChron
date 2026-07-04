@@ -1,7 +1,7 @@
 """
 Data export for the Storyline front-end (NO HTML here -- pure data).
 
-Writes storyline_data.json consumed by the static front-end (index.html +
+Writes storyline_data.json consumed by the static front-end (storyline.html +
 storyline.js), which does all layout and rendering in the browser.
 
 Contract:
@@ -30,7 +30,7 @@ Contract:
     (true, rare gaps).
 Two proximity rules are supported, producing two separate output files -- this
 script never overwrites one with the other, so both can be compared side by
-side (index.html loads the original "hwcounty" file; a separate county-only
+side (storyline.html loads the original "hwcounty" file; a separate county-only
 page loads the "county" file):
 
   hwcounty (original, paper-adapted rule): cohorts never cross a (roadbed,
@@ -90,11 +90,12 @@ def yvals(seg, k):
     return [round(float(SCORES[seg, c]), 1) if np.isfinite(SCORES[seg, c]) else None
             for c in wcols[k]]
 
-roadbed = {}; county = {}; marker = {}; begin_pos = {}
+roadbed = {}; county = {}; marker = {}; begin_pos = {}; pavtype = {}
 for row in csv.DictReader(open("sections_meta.csv", encoding="utf-8")):
     p = pos.get(row["section_id"])
     if p is not None:
         roadbed[p] = row["roadbed"]; county[p] = row["county"]
+        pavtype[p] = row["pavtype"]
         bm = clean_and_round(row["begin_marker"])
         bd = clean_and_round(row["begin_disp"])
         marker[p] = bm  # kept for back-compat sort/display use
@@ -136,6 +137,7 @@ for m in sorted(seg_win, key=sort_key):
         "id": sections[m], "marker": marker.get(m, 0.0),
         "begin": b, "end": b + SEGMENT_LENGTH_MI,
         "roadbed": roadbed.get(m, ""), "county": county.get(m, ""),
+        "pavtype": pavtype.get(m, ""),
         "win": seg_win[m]})
 
 if RULE == "county":

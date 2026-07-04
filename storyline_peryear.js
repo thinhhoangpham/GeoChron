@@ -11,7 +11,7 @@
  * stacked position in every window it has data for.
  *
  * No build step. Plain ES2017+. d3 is used only for color scales/categorical
- * palettes (loaded from CDN in index.html).
+ * palettes (loaded from CDN in storyline_peryear.html).
  * ==========================================================================*/
 
 (function () {
