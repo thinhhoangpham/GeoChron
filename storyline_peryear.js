@@ -1378,6 +1378,46 @@
     tooltipEl.classList.add("hidden");
   });
 
+  canvas.addEventListener("click", onCanvasClick);
+
+  function onCanvasClick(evt) {
+    if (!hitIndex) return;
+    const rect = canvasWrap.getBoundingClientRect();
+    const x = evt.clientX - rect.left + state.scrollLeft;
+    const y = evt.clientY - rect.top + state.scrollTop;
+    const k = Math.round((x - MARGIN_LEFT - state.colW / 2) / colPitch());
+
+    // Click outside any column, or on empty space -> clear enforcement.
+    if (k < 0 || k >= state.numWindows) return clearEnforce();
+    const hit = nearestInSortedY(hitIndex[k], y, HOVER_HIT_PX);
+    if (!hit) return clearEnforce();
+
+    // Resolve the clicked segment to its cohort (session id) at window k.
+    const struct = state.structures[hit.roadIdx];
+    const cell = struct.segKMap[hit.segIdx].get(k);
+    if (!cell || cell.s == null) return clearEnforce(); // singleton: no session
+
+    const cur = state.enforcedAlign;
+    const sameCohort =
+      cur && cur.roadIdx === hit.roadIdx && cur.k === k && cur.s === cell.s;
+    if (sameCohort) return clearEnforce(); // toggle off
+
+    state.enforcedAlign = { roadIdx: hit.roadIdx, k, s: cell.s };
+    recomputeEnforce();
+  }
+
+  function clearEnforce() {
+    if (!state.enforcedAlign) return;
+    state.enforcedAlign = null;
+    recomputeEnforce();
+  }
+
+  function recomputeEnforce() {
+    buildAllStructures();
+    buildGeometry();
+    render();
+  }
+
   function onCanvasMouseMove(evt) {
     if (!hitIndex) return;
     // The canvas element is pinned to the top-left of canvasWrap's CURRENTLY
