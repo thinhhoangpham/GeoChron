@@ -70,6 +70,7 @@
     colW: 62,
     colGap: 24,
     hover: null,          // { roadIdx, segIdx }
+    enforcedAlign: null,  // { roadIdx, k, s } | null - active click-to-align cohort
     dpr: window.devicePixelRatio || 1,
     scrollLeft: 0,        // canvasWrap.scrollLeft mirror, used to translate drawing
     scrollTop: 0,         // canvasWrap.scrollTop mirror
@@ -535,7 +536,7 @@
   //    across windows (derived via the old mutual-best-overlap union-find;
   //    this informs COLOR ONLY, not position).
   // ------------------------------------------------------------------------
-  function buildRoadStructure(road) {
+  function buildRoadStructure(road, roadIdx) {
     const segments = road.segments;
     const n = segments.length;
     const numWindows = state.numWindows;
@@ -805,7 +806,25 @@
       }
     }
 
-    return { segKMap, groupsAtK, order, memberWithinGroupOrder, nodeColorTrack, segCount: n };
+    let finalOrder = order;
+    let finalMemOrder = memberWithinGroupOrder;
+    let enforceTargetKey = null;
+    const ea = state.enforcedAlign;
+    if (ea && ea.roadIdx === roadIdx) {
+      const res = StorylineAlign.enforceAlignOrder(
+        { order, memberWithinGroupOrder },
+        { groupsAtK, numWindows, clicked: { k: ea.k, s: ea.s }, thc: 1 }
+      );
+      finalOrder = res.order;
+      finalMemOrder = res.memberWithinGroupOrder;
+      enforceTargetKey = res.targetKeyByWindow;
+    }
+    return {
+      segKMap, groupsAtK,
+      order: finalOrder,
+      memberWithinGroupOrder: finalMemOrder,
+      nodeColorTrack, segCount: n, enforceTargetKey,
+    };
   }
 
   function buildAllStructures() {
