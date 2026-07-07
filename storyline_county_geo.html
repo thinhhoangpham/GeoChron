@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Storyline Visualization — by county only (experimental)</title>
+<link rel="stylesheet" href="storyline.css">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>window.STORYLINE_DATA_FILE = "storyline_data_county_geo.json";</script>
+</head>
+<body>
+  <header id="toolbar">
+    <div class="toolbar-row">
+      <div class="ctl">
+        <span>Dataset</span>
+        <div style="font-size:13px; padding:4px 0;">
+          By county only (experimental) — <a href="storyline.html">compare: by highway + county (original)</a>
+        </div>
+      </div>
+      <label class="ctl">
+        <span>Road</span>
+        <input id="roadSearch" type="text" placeholder="Type to filter... (All roads)" autocomplete="off">
+        <div id="roadDropdown" class="dropdown hidden"></div>
+      </label>
+
+      <label class="ctl">
+        <span>Color mode</span>
+        <select id="colorMode">
+          <option value="condition" selected>Condition (RdYlGn)</option>
+          <option value="cohort">Cohort hue</option>
+          <option value="highway">Highway hue</option>
+          <option value="pavtype">Pavement type</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="toolbar-row sliders">
+      <label class="ctl slider">
+        <span>Row height <output id="rowPxOut">4</output>px</span>
+        <input id="rowPx" type="range" min="1" max="16" step="1" value="4">
+      </label>
+      <label class="ctl slider">
+        <span>Lane gap <output id="laneGapOut">48</output>px</span>
+        <input id="laneGap" type="range" min="0" max="160" step="2" value="48">
+      </label>
+      <label class="ctl slider">
+        <span>Road gap <output id="roadGapOut">28</output>px</span>
+        <input id="roadGap" type="range" min="0" max="120" step="2" value="28">
+      </label>
+      <label class="ctl slider">
+        <span>Column width <output id="colWOut">62</output>px</span>
+        <input id="colW" type="range" min="20" max="160" step="2" value="62">
+      </label>
+      <label class="ctl slider">
+        <span>Window gap <output id="colGapOut">24</output>px</span>
+        <input id="colGap" type="range" min="0" max="160" step="2" value="24">
+      </label>
+    </div>
+    <div id="status" class="status">Loading storyline_data_county.json...</div>
+  </header>
+
+  <div id="scrollArea">
+    <div id="axis"><div id="axisInner"></div></div>
+    <!-- canvasWrap is the real (overflow:auto) scroll container. canvasSpacer
+         is an invisible block sized to the FULL layout extent so the browser
+         draws normal scrollbars; the canvas itself is kept at a fixed,
+         viewport-sized backing-store dimension (browsers silently blank
+         canvases taller than ~32767px) and is repositioned/redrawn on
+         scroll to show the slice of content currently in view. -->
+    <div id="canvasWrap">
+      <div id="canvasSpacer"></div>
+      <canvas id="storylineGLCanvas"></canvas>
+      <canvas id="storylineCanvas"></canvas>
+    </div>
+  </div>
+
+  <div id="tooltip" class="hidden"></div>
+  <div id="colorLegend" class="hidden"></div>
+
+  <script>
+    // Dev cache-buster: load app scripts fresh each reload, preserving order.
+    for (const s of ["storyline_align.js", "storyline.js", "heatmap.js", "evolens.js"]) {
+      const el = document.createElement("script");
+      el.src = s + "?t=" + Date.now();
+      el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order
+      document.head.appendChild(el);
+    }
+  </script>
+</body>
+</html>
