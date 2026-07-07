@@ -158,17 +158,16 @@
     return { order, memberWithinGroupOrder: base.memberWithinGroupOrder, targetKeyByWindow };
   }
 
-  // Given the number of member-rows in each window's top part (the groups
-  // above the target), return per-window vertical pad (px) so every window's
-  // target group starts at the same y (the tallest top part becomes the
-  // reference with pad 0). topCounts[k] is the total member count above the
-  // target at window k; a non-empty top part also consumes one laneGap before
-  // the target, matching buildGeometry's stacking.
-  function targetTopPad(topCounts, opts) {
-    const rowPx = opts.rowPx, laneGap = opts.laneGap;
-    const topY = topCounts.map((c) => (c > 0 ? c * rowPx + laneGap : 0));
-    const maxY = topY.reduce((a, b) => (b > a ? b : a), 0);
-    return topY.map((y) => maxY - y);
+  // Given each window's TRUE target start-y (the pixel y at which the target
+  // group begins, computed by the caller by replaying buildGeometry's exact
+  // group-gap + singleton-zero-gap stacking rule), return per-window vertical
+  // pad (px) so every window's target group starts at the same y. targetStarts[k]
+  // is that start-y, or null if window k has no target (left unpadded -> 0). The
+  // reference is the max non-null start-y (0 if none); pad = maxStart - start.
+  function targetTopPad(targetStarts) {
+    let maxStart = 0;
+    for (const s of targetStarts) if (s !== null && s > maxStart) maxStart = s;
+    return targetStarts.map((s) => (s === null ? 0 : maxStart - s));
   }
 
   const StorylineAlign = { weightedLCS, enforceAlignOrder, targetTopPad };

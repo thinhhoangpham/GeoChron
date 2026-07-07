@@ -850,20 +850,25 @@
       for (let i = 0; i < struct.segCount; i++) segY[i] = new Map();
 
       let roadHeight = 0;
-      // Enforce-align straightening: pad each window's top part so the target
-      // cohort starts at a constant y across windows (paper Fig. 4D).
+      // Enforce-align straightening: make the target cohort start at a constant
+      // y across windows by equalizing each window's true target start-y
+      // (replaying buildGeometry's own group-gap + singleton-zero-gap rule).
       let targetPad = null;
       if (struct.enforceTargetKey) {
-        const topCounts = new Array(state.numWindows).fill(0);
+        const targetStarts = new Array(state.numWindows).fill(null);
         for (let k = 0; k < state.numWindows; k++) {
           const tk = struct.enforceTargetKey[k];
           if (!tk) continue;
+          let yy = 0, lastSingleton = false, emitted = false;
           for (const g of struct.order[k]) {
-            if (g.key === tk) break;
-            topCounts[k] += g._sortedMembers.length;
+            const isSingleton = g.key.startsWith("singleton:");
+            if (emitted) yy += (isSingleton && lastSingleton) ? 0 : laneGap;
+            if (g.key === tk) { targetStarts[k] = yy; break; }
+            yy += g._sortedMembers.length * rowPx;
+            lastSingleton = isSingleton; emitted = true;
           }
         }
-        targetPad = StorylineAlign.targetTopPad(topCounts, { rowPx, laneGap });
+        targetPad = StorylineAlign.targetTopPad(targetStarts);
       }
       for (let k = 0; k < state.numWindows; k++) {
         const groups = struct.order[k];
