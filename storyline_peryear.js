@@ -850,10 +850,25 @@
       for (let i = 0; i < struct.segCount; i++) segY[i] = new Map();
 
       let roadHeight = 0;
+      // Enforce-align straightening: pad each window's top part so the target
+      // cohort starts at a constant y across windows (paper Fig. 4D).
+      let targetPad = null;
+      if (struct.enforceTargetKey) {
+        const topCounts = new Array(state.numWindows).fill(0);
+        for (let k = 0; k < state.numWindows; k++) {
+          const tk = struct.enforceTargetKey[k];
+          if (!tk) continue;
+          for (const g of struct.order[k]) {
+            if (g.key === tk) break;
+            topCounts[k] += g._sortedMembers.length;
+          }
+        }
+        targetPad = StorylineAlign.targetTopPad(topCounts, { rowPx, laneGap });
+      }
       for (let k = 0; k < state.numWindows; k++) {
         const groups = struct.order[k];
         const memOrder = struct.memberWithinGroupOrder[k];
-        let y = 0;
+        let y = targetPad ? targetPad[k] : 0;
         const tops = new Array(groups.length);
         let lastWasSingleton = false;
         let anyEmitted = false;

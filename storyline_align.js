@@ -158,7 +158,20 @@
     return { order, memberWithinGroupOrder: base.memberWithinGroupOrder, targetKeyByWindow };
   }
 
-  const StorylineAlign = { weightedLCS, enforceAlignOrder };
+  // Given the number of member-rows in each window's top part (the groups
+  // above the target), return per-window vertical pad (px) so every window's
+  // target group starts at the same y (the tallest top part becomes the
+  // reference with pad 0). topCounts[k] is the total member count above the
+  // target at window k; a non-empty top part also consumes one laneGap before
+  // the target, matching buildGeometry's stacking.
+  function targetTopPad(topCounts, opts) {
+    const rowPx = opts.rowPx, laneGap = opts.laneGap;
+    const topY = topCounts.map((c) => (c > 0 ? c * rowPx + laneGap : 0));
+    const maxY = topY.reduce((a, b) => (b > a ? b : a), 0);
+    return topY.map((y) => maxY - y);
+  }
+
+  const StorylineAlign = { weightedLCS, enforceAlignOrder, targetTopPad };
 
   if (typeof module !== "undefined" && module.exports) module.exports = StorylineAlign;
   if (typeof window !== "undefined") window.StorylineAlign = StorylineAlign;

@@ -89,3 +89,16 @@ test("enforceAlignOrder returns base order untouched for windows with no target 
     assert.deepStrictEqual(gs.map((g) => g.key), base.order[k].map((g) => g.key))
   );
 });
+
+test("targetTopPad equalizes target start rows across windows", () => {
+  // top-part member counts per window before the target: [2, 0, 5]
+  // rowPx=4 -> top heights [8,0,20]; laneGap=48 applied before target when
+  // top part non-empty. Expected pad so every target starts at the max top-y.
+  const topCounts = [2, 0, 5];
+  const pads = StorylineAlign.targetTopPad(topCounts, { rowPx: 4, laneGap: 48 });
+  // window with the tallest top part gets pad 0; others padded up to it.
+  assert.strictEqual(Math.min(...pads), 0);
+  assert.strictEqual(pads.length, 3);
+  // the window with the largest top part (index 2) is the reference (pad 0)
+  assert.strictEqual(pads[2], 0);
+});
