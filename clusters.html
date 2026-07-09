@@ -30,7 +30,14 @@
     <div id="thumbnailGrid"></div>
   </div>
 
-  <script src="heatmap.js"></script>
-  <script src="clusters.js"></script>
+  <script>
+    // Dev cache-buster: load app scripts fresh each reload, preserving order.
+    for (const s of ["heatmap.js", "clusters.js"]) {
+      const el = document.createElement("script");
+      el.src = s + "?t=" + Date.now();
+      el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order
+      document.head.appendChild(el);
+    }
+  </script>
 </body>
 </html>

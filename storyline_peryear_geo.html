@@ -5,7 +5,14 @@
 <title>Storyline Visualization — per-year, by highway + county</title>
 <link rel="stylesheet" href="storyline.css">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script>window.STORYLINE_DATA_FILE = "storyline_data_peryear_hwcounty_geo.json";</script>
+<script>window.STORYLINE_DATA_FILE = "storyline_data_peryear_hwcounty_geo.json"; window.STORYLINE_BROWSER_FILTER = true;</script>
+<style>
+  #paintPalette { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  #paintPalette .paint-label { font-size: 12px; color: #555; margin-right: 4px; }
+  #paintPalette .paint-color { width: 28px; height: 24px; border: 1px solid #999; border-radius: 4px; cursor: pointer; padding: 0; background: none; }
+  #paintPalette .paint-btn { font-size: 12px; padding: 3px 8px; cursor: pointer; }
+  #paintPalette .paint-btn.active { outline: 2px solid #111; outline-offset: 1px; box-shadow: inset 0 0 0 2px #111; }
+</style>
 </head>
 <body>
   <header id="toolbar">
@@ -26,7 +33,7 @@
       <label class="ctl">
         <span>Color mode</span>
         <select id="colorMode">
-          <option value="condition" selected>Condition (PMIS categories)</option>
+          <option value="condition" selected>Condition</option>
           <option value="cohort">Cohort hue</option>
           <option value="pavtype">Pavement type</option>
         </select>
@@ -54,6 +61,17 @@
         <span>Year gap <output id="colGapOut">24</output>px</span>
         <input id="colGap" type="range" min="0" max="160" step="2" value="24">
       </label>
+      <label class="ctl slider">
+        <span>Session filter (ths) <output id="thsOut">5</output></span>
+        <input id="ths" type="range" min="1" max="30" step="1" value="5">
+      </label>
+    </div>
+    <div class="toolbar-row" id="paintPalette" title="Pick a color, then click a session to color the entities it comprises (paper section 6.3.1)">
+      <span class="paint-label">Paint sessions</span>
+      <input type="color" id="paintColor" class="paint-color" value="#d62728" title="Pick any paint color">
+      <button type="button" class="paint-btn" id="paintToggle" title="Arm/disarm painting with the chosen color">Paint</button>
+      <button type="button" class="paint-btn" id="paintEraser" title="Erase color from a clicked session">Eraser</button>
+      <button type="button" class="paint-btn" id="paintClear" title="Clear all painted colors">Clear colors</button>
     </div>
     <div id="status" class="status">Loading storyline_data_peryear_hwcounty.json...</div>
   </header>

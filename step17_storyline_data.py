@@ -56,11 +56,13 @@ non-digit/non-dot characters before parsing) rather than failing/defaulting to
 0 as a naive float() would -- see build_unit_segments_full.py for the same fix
 applied to the clustering pipeline.
 """
-import csv, json, collections, re, sys
+import csv, json, collections, re, sys, os
 import numpy as np
 
 RULE = sys.argv[1] if len(sys.argv) > 1 else "hwcounty"
 assert RULE in ("county", "hwcounty")
+THR  = float(sys.argv[2]) if len(sys.argv) > 2 else 0.7  # correlation threshold (matches step6)
+tag  = "" if abs(THR - 0.7) < 1e-9 else f"_thr{round(THR*100)}"
 
 SEGMENT_LENGTH_MI = 0.5
 
@@ -103,7 +105,9 @@ for row in csv.DictReader(open("sections_meta.csv", encoding="utf-8")):
 
 # step11_sessions_W5_<rule>.json gives the KEPT cohort id (s) for segments that
 # survived filtering; build seg -> {k: s} for fast lookup.
-sess = json.load(open(f"step11_sessions_W5_{RULE}.json"))["windows"]; sess.sort(key=lambda w: w["k"])
+# NOFILTER=1 reads raw step10 communities (browser applies the paper's session filtering live).
+_sess_file = f"step10_communities_W5_{RULE}{tag}.json" if os.environ.get("NOFILTER") == "1" else f"step11_sessions_W5_{RULE}{tag}.json"
+sess = json.load(open(_sess_file))["windows"]; sess.sort(key=lambda w: w["k"])
 seg_session = collections.defaultdict(dict)  # seg -> {k: s}
 for k, w in enumerate(sess):
     for s, members in enumerate(w["sessions"]):
@@ -152,7 +156,7 @@ out = {
                  "label": f'{w["start"]}-{w["end"]}'} for k, w in enumerate(win_meta)],
     "roads": road_entries,
 }
-out_file = f"storyline_data_{RULE}.json"
+out_file = f"storyline_data_{RULE}{tag}.json"
 json.dump(out, open(out_file, "w"))
 n_single = sum(1 for _, segs in roads.items() if len(segs) == 1)
 print(f"[{RULE}] roads: {len(out['roads'])}   segments: {sum(len(r['segments']) for r in out['roads']):,}")

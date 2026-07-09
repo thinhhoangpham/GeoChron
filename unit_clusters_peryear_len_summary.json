@@ -1,0 +1,260 @@
+{
+  "fill": {
+    "Q1": {
+      "cut_distance": 0.7,
+      "seg_min": 1,
+      "seg_max": 2,
+      "n_units": 337,
+      "n_clusters": 132,
+      "n_singletons": 25,
+      "top10_cluster_sizes": [
+        7,
+        6,
+        6,
+        6,
+        6,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q2": {
+      "cut_distance": 0.7,
+      "seg_min": 3,
+      "seg_max": 5,
+      "n_units": 226,
+      "n_clusters": 125,
+      "n_singletons": 57,
+      "top10_cluster_sizes": [
+        6,
+        5,
+        5,
+        5,
+        4,
+        4,
+        4,
+        4,
+        3,
+        3
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q3": {
+      "cut_distance": 0.7,
+      "seg_min": 6,
+      "seg_max": 15,
+      "n_units": 278,
+      "n_clusters": 159,
+      "n_singletons": 79,
+      "top10_cluster_sizes": [
+        7,
+        6,
+        6,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        3
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q4": {
+      "cut_distance": 0.7,
+      "seg_min": 16,
+      "seg_max": 174,
+      "n_units": 271,
+      "n_clusters": 156,
+      "n_singletons": 73,
+      "top10_cluster_sizes": [
+        6,
+        5,
+        5,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        3
+      ],
+      "skipped_too_few_units": false
+    }
+  },
+  "fill1": {
+    "Q1": {
+      "cut_distance": 0.7,
+      "seg_min": 1,
+      "seg_max": 2,
+      "n_units": 337,
+      "n_clusters": 91,
+      "n_singletons": 21,
+      "top10_cluster_sizes": [
+        25,
+        20,
+        12,
+        10,
+        9,
+        8,
+        7,
+        7,
+        7,
+        7
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q2": {
+      "cut_distance": 0.7,
+      "seg_min": 3,
+      "seg_max": 5,
+      "n_units": 226,
+      "n_clusters": 90,
+      "n_singletons": 35,
+      "top10_cluster_sizes": [
+        9,
+        9,
+        8,
+        8,
+        8,
+        7,
+        7,
+        6,
+        6,
+        6
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q3": {
+      "cut_distance": 0.7,
+      "seg_min": 6,
+      "seg_max": 15,
+      "n_units": 278,
+      "n_clusters": 126,
+      "n_singletons": 48,
+      "top10_cluster_sizes": [
+        7,
+        7,
+        6,
+        6,
+        6,
+        5,
+        5,
+        5,
+        4,
+        4
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q4": {
+      "cut_distance": 0.7,
+      "seg_min": 16,
+      "seg_max": 174,
+      "n_units": 271,
+      "n_clusters": 122,
+      "n_singletons": 42,
+      "top10_cluster_sizes": [
+        7,
+        6,
+        6,
+        6,
+        6,
+        6,
+        5,
+        5,
+        5,
+        4
+      ],
+      "skipped_too_few_units": false
+    }
+  },
+  "nofill": {
+    "Q1": {
+      "cut_distance": 0.7,
+      "seg_min": 1,
+      "seg_max": 2,
+      "n_units": 337,
+      "n_clusters": 121,
+      "n_singletons": 13,
+      "top10_cluster_sizes": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q2": {
+      "cut_distance": 0.7,
+      "seg_min": 3,
+      "seg_max": 5,
+      "n_units": 226,
+      "n_clusters": 92,
+      "n_singletons": 17,
+      "top10_cluster_sizes": [
+        7,
+        7,
+        6,
+        5,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q3": {
+      "cut_distance": 0.7,
+      "seg_min": 6,
+      "seg_max": 15,
+      "n_units": 278,
+      "n_clusters": 119,
+      "n_singletons": 31,
+      "top10_cluster_sizes": [
+        15,
+        6,
+        6,
+        6,
+        5,
+        5,
+        5,
+        5,
+        5,
+        4
+      ],
+      "skipped_too_few_units": false
+    },
+    "Q4": {
+      "cut_distance": 0.7,
+      "seg_min": 16,
+      "seg_max": 174,
+      "n_units": 271,
+      "n_clusters": 121,
+      "n_singletons": 37,
+      "top10_cluster_sizes": [
+        7,
+        7,
+        7,
+        6,
+        6,
+        5,
+        5,
+        4,
+        4,
+        4
+      ],
+      "skipped_too_few_units": false
+    }
+  }
+}

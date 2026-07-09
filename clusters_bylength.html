@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Unit Clusters by Length</title>
+<link rel="stylesheet" href="storyline.css">
+<link rel="stylesheet" href="clusters.css">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+</head>
+<body>
+  <header id="toolbar">
+    <div class="toolbar-row">
+      <label class="ctl">
+        <span>Length class</span>
+        <select id="lengthClass">
+          <option value="1">Q1</option>
+          <option value="2">Q2</option>
+          <option value="3">Q3</option>
+          <option value="4">Q4</option>
+        </select>
+      </label>
+      <label class="ctl">
+        <span>Gap fill</span>
+        <select id="fillMode">
+          <option value="fill" selected>Flat mean (current)</option>
+          <option value="fill1">Ffill/bfill + interpolation (option 1)</option>
+          <option value="nofill">No fill, pairwise-complete corr (option 2)</option>
+        </select>
+      </label>
+      <label class="ctl">
+        <span>View</span>
+        <select id="viewMode">
+          <option value="raw" selected>Raw segments</option>
+          <option value="flattened">Flattened grid (clustered)</option>
+          <option value="pattern">Pattern (normalized)</option>
+        </select>
+      </label>
+    </div>
+    <div id="status" class="status">Loading...</div>
+  </header>
+
+  <div id="clustersLayout">
+    <div id="clusterSidebar"></div>
+    <div id="thumbnailGrid"></div>
+  </div>
+
+  <script>
+    // Dev cache-buster: load app scripts fresh each reload, preserving order.
+    for (const s of ["heatmap.js", "clusters_bylength.js"]) {
+      const el = document.createElement("script");
+      el.src = s + "?t=" + Date.now();
+      el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order
+      document.head.appendChild(el);
+    }
+  </script>
+</body>
+</html>

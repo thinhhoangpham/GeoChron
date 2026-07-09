@@ -20,10 +20,12 @@ import json, sys
 
 RULE = sys.argv[1] if len(sys.argv) > 1 else "hwcounty"
 assert RULE in ("county", "hwcounty")
+THR  = float(sys.argv[2]) if len(sys.argv) > 2 else 0.7  # correlation threshold (matches step6)
+tag  = "" if abs(THR - 0.7) < 1e-9 else f"_thr{round(THR*100)}"
 
 THS = 5
 
-W = json.load(open(f"step10_communities_W5_{RULE}.json"))["windows"]
+W = json.load(open(f"step10_communities_W5_{RULE}{tag}.json"))["windows"]
 W.sort(key=lambda w: w["k"])
 n = len(W)
 
@@ -68,11 +70,11 @@ for idx, w in enumerate(W):
         "segments_in_kept": sum(len(s) for s in kept)})
 
 json.dump({"ths": THS, "windows": out_windows},
-          open(f"step11_sessions_W5_{RULE}.json", "w"))
+          open(f"step11_sessions_W5_{RULE}{tag}.json", "w"))
 summary["total_sessions_before"] = tot_before
 summary["total_sessions_after"] = tot_after
 summary["total_rescued_small"] = tot_rescued
-json.dump(summary, open(f"step11_summary_{RULE}.json", "w"), indent=2)
+json.dump(summary, open(f"step11_summary_{RULE}{tag}.json", "w"), indent=2)
 
 print(f"[{RULE}] ths={THS}")
 print(f"{'win':>3} {'before':>7} {'after':>6} {'rescued':>8} {'largest':>8} {'segs':>7}")
@@ -81,4 +83,4 @@ for s in summary["windows"]:
           f"{s['rescued_small']:>8} {s['largest']:>8} {s['segments_in_kept']:>7}")
 print(f"\nsessions: {tot_before:,} -> {tot_after:,}   "
       f"(rescued {tot_rescued:,} small sessions via neighbor rule)")
-print(f"wrote step11_sessions_W5_{RULE}.json + step11_summary_{RULE}.json")
+print(f"wrote step11_sessions_W5_{RULE}{tag}.json + step11_summary_{RULE}{tag}.json")

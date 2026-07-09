@@ -1,0 +1,209 @@
+{
+  "W": 5,
+  "THR": 0.8,
+  "MIN_OVERLAP": 4,
+  "n_windows": 25,
+  "windows": [
+    {
+      "k": 0,
+      "start": 1996,
+      "end": 2000,
+      "n_nodes": 4593,
+      "n_edges": 756911,
+      "density": 0.071776
+    },
+    {
+      "k": 1,
+      "start": 1997,
+      "end": 2001,
+      "n_nodes": 5592,
+      "n_edges": 1008832,
+      "density": 0.064535
+    },
+    {
+      "k": 2,
+      "start": 1998,
+      "end": 2002,
+      "n_nodes": 6363,
+      "n_edges": 1325551,
+      "density": 0.065489
+    },
+    {
+      "k": 3,
+      "start": 1999,
+      "end": 2003,
+      "n_nodes": 7312,
+      "n_edges": 1636133,
+      "density": 0.061212
+    },
+    {
+      "k": 4,
+      "start": 2000,
+      "end": 2004,
+      "n_nodes": 8011,
+      "n_edges": 1798347,
+      "density": 0.056051
+    },
+    {
+      "k": 5,
+      "start": 2001,
+      "end": 2005,
+      "n_nodes": 8606,
+      "n_edges": 1832582,
+      "density": 0.049493
+    },
+    {
+      "k": 6,
+      "start": 2002,
+      "end": 2006,
+      "n_nodes": 8913,
+      "n_edges": 1867310,
+      "density": 0.047016
+    },
+    {
+      "k": 7,
+      "start": 2003,
+      "end": 2007,
+      "n_nodes": 9359,
+      "n_edges": 1931687,
+      "density": 0.044112
+    },
+    {
+      "k": 8,
+      "start": 2004,
+      "end": 2008,
+      "n_nodes": 9651,
+      "n_edges": 2437504,
+      "density": 0.052345
+    },
+    {
+      "k": 9,
+      "start": 2005,
+      "end": 2009,
+      "n_nodes": 9792,
+      "n_edges": 2257508,
+      "density": 0.047093
+    },
+    {
+      "k": 10,
+      "start": 2006,
+      "end": 2010,
+      "n_nodes": 10064,
+      "n_edges": 2188684,
+      "density": 0.043223
+    },
+    {
+      "k": 11,
+      "start": 2007,
+      "end": 2011,
+      "n_nodes": 10454,
+      "n_edges": 2240849,
+      "density": 0.041013
+    },
+    {
+      "k": 12,
+      "start": 2008,
+      "end": 2012,
+      "n_nodes": 10879,
+      "n_edges": 2435752,
+      "density": 0.041165
+    },
+    {
+      "k": 13,
+      "start": 2009,
+      "end": 2013,
+      "n_nodes": 11060,
+      "n_edges": 2162575,
+      "density": 0.035361
+    },
+    {
+      "k": 14,
+      "start": 2010,
+      "end": 2014,
+      "n_nodes": 11128,
+      "n_edges": 2235090,
+      "density": 0.036102
+    },
+    {
+      "k": 15,
+      "start": 2011,
+      "end": 2015,
+      "n_nodes": 10918,
+      "n_edges": 2130840,
+      "density": 0.035755
+    },
+    {
+      "k": 16,
+      "start": 2012,
+      "end": 2016,
+      "n_nodes": 10849,
+      "n_edges": 2190705,
+      "density": 0.037228
+    },
+    {
+      "k": 17,
+      "start": 2013,
+      "end": 2017,
+      "n_nodes": 9637,
+      "n_edges": 2636251,
+      "density": 0.056778
+    },
+    {
+      "k": 18,
+      "start": 2014,
+      "end": 2018,
+      "n_nodes": 9655,
+      "n_edges": 2467072,
+      "density": 0.052936
+    },
+    {
+      "k": 19,
+      "start": 2015,
+      "end": 2019,
+      "n_nodes": 9680,
+      "n_edges": 2412639,
+      "density": 0.051501
+    },
+    {
+      "k": 20,
+      "start": 2016,
+      "end": 2020,
+      "n_nodes": 9271,
+      "n_edges": 2007300,
+      "density": 0.046713
+    },
+    {
+      "k": 21,
+      "start": 2017,
+      "end": 2021,
+      "n_nodes": 9274,
+      "n_edges": 1989346,
+      "density": 0.046265
+    },
+    {
+      "k": 22,
+      "start": 2018,
+      "end": 2022,
+      "n_nodes": 9407,
+      "n_edges": 1799168,
+      "density": 0.040667
+    },
+    {
+      "k": 23,
+      "start": 2019,
+      "end": 2023,
+      "n_nodes": 9368,
+      "n_edges": 1836280,
+      "density": 0.041853
+    },
+    {
+      "k": 24,
+      "start": 2020,
+      "end": 2024,
+      "n_nodes": 8030,
+      "n_edges": 1154022,
+      "density": 0.035799
+    }
+  ],
+  "total_edges": 48738938
+}

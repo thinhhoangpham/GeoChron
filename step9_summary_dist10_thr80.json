@@ -1,0 +1,189 @@
+{
+  "rule": "centroid-to-centroid great-circle distance <= 10.0 km",
+  "thd_km": 10.0,
+  "correlation_thr": 0.8,
+  "sections_total": 13522,
+  "sections_with_centroid": 13514,
+  "sections_without_centroid": 8,
+  "windows": [
+    {
+      "k": 0,
+      "corr_edges": 756911,
+      "kept": 23635,
+      "retained_pct": 3.123,
+      "dropped_missing_geometry": 285
+    },
+    {
+      "k": 1,
+      "corr_edges": 1008832,
+      "kept": 27511,
+      "retained_pct": 2.727,
+      "dropped_missing_geometry": 329
+    },
+    {
+      "k": 2,
+      "corr_edges": 1325551,
+      "kept": 33788,
+      "retained_pct": 2.549,
+      "dropped_missing_geometry": 1273
+    },
+    {
+      "k": 3,
+      "corr_edges": 1636133,
+      "kept": 36031,
+      "retained_pct": 2.202,
+      "dropped_missing_geometry": 2439
+    },
+    {
+      "k": 4,
+      "corr_edges": 1798347,
+      "kept": 36190,
+      "retained_pct": 2.012,
+      "dropped_missing_geometry": 2566
+    },
+    {
+      "k": 5,
+      "corr_edges": 1832582,
+      "kept": 32149,
+      "retained_pct": 1.754,
+      "dropped_missing_geometry": 3958
+    },
+    {
+      "k": 6,
+      "corr_edges": 1867310,
+      "kept": 32577,
+      "retained_pct": 1.745,
+      "dropped_missing_geometry": 3134
+    },
+    {
+      "k": 7,
+      "corr_edges": 1931687,
+      "kept": 33765,
+      "retained_pct": 1.748,
+      "dropped_missing_geometry": 3107
+    },
+    {
+      "k": 8,
+      "corr_edges": 2437504,
+      "kept": 43241,
+      "retained_pct": 1.774,
+      "dropped_missing_geometry": 3302
+    },
+    {
+      "k": 9,
+      "corr_edges": 2257508,
+      "kept": 41350,
+      "retained_pct": 1.832,
+      "dropped_missing_geometry": 2687
+    },
+    {
+      "k": 10,
+      "corr_edges": 2188684,
+      "kept": 39246,
+      "retained_pct": 1.793,
+      "dropped_missing_geometry": 3563
+    },
+    {
+      "k": 11,
+      "corr_edges": 2240849,
+      "kept": 40357,
+      "retained_pct": 1.801,
+      "dropped_missing_geometry": 2185
+    },
+    {
+      "k": 12,
+      "corr_edges": 2435752,
+      "kept": 41313,
+      "retained_pct": 1.696,
+      "dropped_missing_geometry": 2194
+    },
+    {
+      "k": 13,
+      "corr_edges": 2162575,
+      "kept": 33557,
+      "retained_pct": 1.552,
+      "dropped_missing_geometry": 4043
+    },
+    {
+      "k": 14,
+      "corr_edges": 2235090,
+      "kept": 33891,
+      "retained_pct": 1.516,
+      "dropped_missing_geometry": 3259
+    },
+    {
+      "k": 15,
+      "corr_edges": 2130840,
+      "kept": 30404,
+      "retained_pct": 1.427,
+      "dropped_missing_geometry": 2603
+    },
+    {
+      "k": 16,
+      "corr_edges": 2190705,
+      "kept": 30749,
+      "retained_pct": 1.404,
+      "dropped_missing_geometry": 4327
+    },
+    {
+      "k": 17,
+      "corr_edges": 2636251,
+      "kept": 32839,
+      "retained_pct": 1.246,
+      "dropped_missing_geometry": 1611
+    },
+    {
+      "k": 18,
+      "corr_edges": 2467072,
+      "kept": 32280,
+      "retained_pct": 1.308,
+      "dropped_missing_geometry": 2684
+    },
+    {
+      "k": 19,
+      "corr_edges": 2412639,
+      "kept": 33241,
+      "retained_pct": 1.378,
+      "dropped_missing_geometry": 1653
+    },
+    {
+      "k": 20,
+      "corr_edges": 2007300,
+      "kept": 26934,
+      "retained_pct": 1.342,
+      "dropped_missing_geometry": 0
+    },
+    {
+      "k": 21,
+      "corr_edges": 1989346,
+      "kept": 27215,
+      "retained_pct": 1.368,
+      "dropped_missing_geometry": 0
+    },
+    {
+      "k": 22,
+      "corr_edges": 1799168,
+      "kept": 24778,
+      "retained_pct": 1.377,
+      "dropped_missing_geometry": 0
+    },
+    {
+      "k": 23,
+      "corr_edges": 1836280,
+      "kept": 24696,
+      "retained_pct": 1.345,
+      "dropped_missing_geometry": 0
+    },
+    {
+      "k": 24,
+      "corr_edges": 1154022,
+      "kept": 17105,
+      "retained_pct": 1.482,
+      "dropped_missing_geometry": 0
+    }
+  ],
+  "total_corr_edges": 48738938,
+  "total_kept": 808842,
+  "total_dropped_missing_geometry": 51202,
+  "overall_retained_pct": 1.66
+}

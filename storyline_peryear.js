@@ -46,6 +46,7 @@
   const roadSearchEl = document.getElementById("roadSearch");
   const roadDropdownEl = document.getElementById("roadDropdown");
   const colorModeEl = document.getElementById("colorMode");
+  const IS_GEO = !!window.STORYLINE_BROWSER_FILTER;
   const colorLegendEl = document.getElementById("colorLegend");
   const rowPxEl = document.getElementById("rowPx");
   const laneGapEl = document.getElementById("laneGap");
@@ -62,7 +63,8 @@
     structures: null,     // per-road static structure (window groups, color track ids) - independent of sliders
     geometry: null,       // per-road geometry (y offsets etc) - depends on sliders
     selectedRoadIdx: -1,  // -1 = all roads
-    colorMode: "condition",
+    colorMode: (colorModeEl && colorModeEl.value) || "condition",
+    ths: 5,               // session-filter threshold (paper §6.2); only applied when window.STORYLINE_BROWSER_FILTER
     rowPx: 4,
     laneGap: 48,
     roadGap: 28,
@@ -74,6 +76,8 @@
     scrollLeft: 0,        // canvasWrap.scrollLeft mirror, used to translate drawing
     scrollTop: 0,         // canvasWrap.scrollTop mirror
     glActive: false,      // true once a WebGL context was successfully created
+    paint: new Map(),     // sectionId(string) -> hex color; paper §6.3.1 click-to-color (entity-anchored, persists across windows)
+    activePaintColor: null, // currently armed swatch hex, "__erase__", or null
   };
   updateColorLegend(); // default mode is "condition"
 
@@ -192,6 +196,26 @@
     const c = d3.hsl(base);
     c.l = 0.30 + t * 0.45; // darker for low v, lighter for high v
     return c.toString();
+  }
+
+  // Paper §6.3.1 paint color: shade the user-picked hex base by condition v,
+  // reusing the exact light->dark ramp cohortColor uses so a painted entity's
+  // trend shading matches the rest of the storyline.
+  function paintColor(hex, v) {
+    if (v === null || v === undefined || isNaN(v)) return hex;
+    if (!hasD3) return hex;
+    const t = Math.max(0, Math.min(100, v)) / 100;
+    const c = d3.hsl(hex);
+    c.l = 0.30 + t * 0.45;
+    return c.toString();
+  }
+
+  // "#rgb"/"#rrggbb" -> [r,g,b] for the ArcGIS map paint API.
+  function hexToRgbArray(hex) {
+    const h = String(hex).replace("#", "");
+    const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    const num = parseInt(n, 16);
+    return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
   }
 
   function highwayColor(roadbed, v) {
@@ -481,37 +505,105 @@
   // Data file is configurable per host page (set window.STORYLINE_DATA_FILE
   // in an inline <script> before this file loads) so two pages can compare
   // different proximity-rule datasets without duplicating this whole file.
-  const DATA_FILE = window.STORYLINE_DATA_FILE || "storyline_data_peryear_hwcounty.json";
+  const BASE_DATA_FILE = window.STORYLINE_DATA_FILE || "storyline_data_peryear_hwcounty.json";
+  // Correlation-threshold selector. THR=0.7 is the original lineage (empty
+  // filename tag -> BASE_DATA_FILE unchanged); THR=0.8 is a stricter additive
+  // dataset whose files carry a "_thr80" tag inserted before ".json". The
+  // active threshold is read from the URL (?thr=0.8) so it survives reloads
+  // and can be carried across the compare-page links.
+  function readThr() {
+    return new URLSearchParams(location.search).get("thr") === "0.8" ? "0.8" : "0.7";
+  }
+  function dataFileFor(thr) {
+    return thr === "0.8" ? BASE_DATA_FILE.replace(/\.json$/, "_thr80.json") : BASE_DATA_FILE;
+  }
+
   // no-store + a cache-busting query: this app is served by a plain
   // http.server with no cache headers, and the data files get regenerated
   // frequently during development -- default fetch caching (and even
   // no-store alone, against some browser disk caches) was serving stale
   // JSON after pipeline re-runs.
-  fetch(`${DATA_FILE}?t=${Date.now()}`, { cache: "no-store" })
-    .then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${DATA_FILE}`);
-      return r.json();
-    })
-    .then((data) => {
-      state.data = data;
-      state.numWindows = (data.windows || []).length;
-      statusEl.textContent = `Loaded ${data.roads.length} roads. Building layout...`;
-      // Defer heavy work a tick so the status text paints first.
-      setTimeout(() => {
-        buildAllStructures();
-        buildGeometry();
-        populateRoadDropdown();
-        buildAxis();
-        render();
-        statusEl.textContent =
-          `${data.roads.length} roads, ${countSegments(data)} segments, ${state.numWindows} windows. ` +
-          `Hover a line for details.`;
-      }, 0);
-    })
-    .catch((err) => {
-      statusEl.textContent = `Failed to load ${DATA_FILE}: ` + err.message;
-      console.error(err);
+  function loadData(file) {
+    statusEl.textContent = `Loading ${file}...`;
+    fetch(`${file}?t=${Date.now()}`, { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${file}`);
+        return r.json();
+      })
+      .then((data) => {
+        state.data = data;
+        state.numWindows = (data.windows || []).length;
+        statusEl.textContent = `Loaded ${data.roads.length} roads. Building layout...`;
+        // Defer heavy work a tick so the status text paints first.
+        setTimeout(() => {
+          state.enforcedAlign = null;
+          buildAllStructures();
+          buildGeometry();
+          populateRoadDropdown();
+          buildAxis();
+          render();
+          statusEl.textContent =
+            `${data.roads.length} roads, ${countSegments(data)} segments, ${state.numWindows} windows. ` +
+            `Hover a line for details.`;
+        }, 0);
+      })
+      .catch((err) => {
+        statusEl.textContent = `Failed to load ${file}: ` + err.message;
+        console.error(err);
+      });
+  }
+
+  // Rewrite the header "compare:" links so the current threshold persists when
+  // navigating to the sibling storyline pages. Idempotent: strips any existing
+  // ?thr before (re)appending, so toggling live keeps the links in sync.
+  function updateCompareLinks(thr) {
+    document.querySelectorAll("#toolbar a[href$='.html'], #toolbar a[href*='.html?']").forEach((a) => {
+      const href = a.getAttribute("href").split("?")[0];
+      a.setAttribute("href", thr === "0.8" ? `${href}?thr=0.8` : href);
     });
+  }
+
+  // Segmented control injected into the header (no per-page HTML edits needed).
+  function setupThresholdToggle() {
+    let thr = readThr();
+    const firstRow = document.querySelector("#toolbar .toolbar-row");
+    const ctl = document.createElement("div");
+    ctl.className = "ctl";
+    const label = document.createElement("span");
+    label.textContent = "Threshold";
+    const seg = document.createElement("div");
+    seg.className = "thr-seg";
+    const buttons = {};
+    ["0.7", "0.8"].forEach((val) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "thr-btn" + (val === thr ? " active" : "");
+      b.textContent = val;
+      b.addEventListener("click", () => {
+        if (val === thr) return;
+        thr = val;
+        buttons["0.7"].classList.toggle("active", thr === "0.7");
+        buttons["0.8"].classList.toggle("active", thr === "0.8");
+        const params = new URLSearchParams(location.search);
+        if (thr === "0.8") params.set("thr", "0.8");
+        else params.delete("thr");
+        const qs = params.toString();
+        history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+        updateCompareLinks(thr);
+        loadData(dataFileFor(thr));
+      });
+      buttons[val] = b;
+      seg.appendChild(b);
+    });
+    ctl.appendChild(label);
+    ctl.appendChild(seg);
+    firstRow.appendChild(ctl);
+    updateCompareLinks(thr);
+    return thr;
+  }
+
+  const initialThr = setupThresholdToggle();
+  loadData(dataFileFor(initialThr));
 
   function countSegments(data) {
     let n = 0;
@@ -544,6 +636,51 @@
     const segKMap = new Array(n);
     for (let i = 0; i < n; i++) segKMap[i] = new Map();
 
+    // Browser-side Session Filtering (paper §6.2), gated on a page flag so the
+    // main (non-geo) pages are byte-for-byte unchanged. The pipeline now emits
+    // UNFILTERED session data (every eligible window keeps every segment's
+    // session id), so when the flag is set we reproduce the paper's rule live:
+    // for window k, a session is KEPT iff its size >= ths, OR at least one of
+    // its member segments belongs to a session of size >= ths in window k-1 or
+    // k+1 (the "bridge" clause). Dropped sessions' segments are simply not added
+    // to any group at k, so they get no position and the layout collapses
+    // vertically (paper Fig. 4 B2->B3) rather than being grayed out.
+    const browserFilter = !!(typeof window !== "undefined" && window.STORYLINE_BROWSER_FILTER);
+    const ths = browserFilter ? Math.max(1, state.ths | 0) : 1;
+
+    // Pre-pass: populate segKMap for EVERY segment/window (independent of
+    // filtering, so downstream cell lookups by (segIdx, k) always resolve), and
+    // record each real session's member segments per window (sessions only;
+    // w.s == null "singletons" are handled separately and never filtered).
+    const sessionMembersAtK = new Array(numWindows);
+    for (let k = 0; k < numWindows; k++) sessionMembersAtK[k] = new Map();
+    for (let i = 0; i < n; i++) {
+      const win = segments[i].win || [];
+      for (const w of win) {
+        if (w == null || w.k == null || w.k < 0 || w.k >= numWindows) continue;
+        segKMap[i].set(w.k, { s: w.s, v: w.v });
+        if (w.s != null) {
+          let arr = sessionMembersAtK[w.k].get(w.s);
+          if (!arr) { arr = []; sessionMembersAtK[w.k].set(w.s, arr); }
+          arr.push(i);
+        }
+      }
+    }
+
+    // largeMembers[k]: Set of segIdx whose session at window k has size >= ths.
+    // Only needed for the bridge clause, so only built when filtering.
+    let largeMembers = null;
+    if (browserFilter) {
+      largeMembers = new Array(numWindows);
+      for (let k = 0; k < numWindows; k++) {
+        const set = new Set();
+        for (const arr of sessionMembersAtK[k].values()) {
+          if (arr.length >= ths) for (const segIdx of arr) set.add(segIdx);
+        }
+        largeMembers[k] = set;
+      }
+    }
+
     // groupsAtK[k]: array of { key, members: [segIdx...] }
     const groupsAtK = new Array(numWindows);
     for (let k = 0; k < numWindows; k++) {
@@ -551,14 +688,34 @@
       const groups = [];
       groupsAtK[k] = groups;
 
+      // Kept-session set at window k (only when filtering).
+      let keptSessions = null;
+      if (browserFilter) {
+        keptSessions = new Set();
+        for (const [s, arr] of sessionMembersAtK[k]) {
+          if (arr.length >= ths) { keptSessions.add(s); continue; }
+          let bridge = false;
+          for (const segIdx of arr) {
+            if ((k > 0 && largeMembers[k - 1].has(segIdx)) ||
+                (k < numWindows - 1 && largeMembers[k + 1].has(segIdx))) {
+              bridge = true;
+              break;
+            }
+          }
+          if (bridge) keptSessions.add(s);
+        }
+      }
+
       for (let i = 0; i < n; i++) {
         const win = segments[i].win || [];
         for (const w of win) {
           if (w == null || w.k !== k) continue;
-          segKMap[i].set(k, { s: w.s, v: w.v });
           if (w.s == null) {
             groups.push({ key: `singleton:${i}`, members: [i] });
           } else {
+            // When filtering, skip segments whose session at k was dropped:
+            // they get no group -> no position -> removed from the layout.
+            if (browserFilter && !keptSessions.has(w.s)) continue;
             let g = bySession.get(w.s);
             if (!g) {
               g = { key: `s:${w.s}`, members: [] };
@@ -973,7 +1130,7 @@
         const relY = geo.segY[i].get(w.k);
         if (relY === undefined) continue; // shouldn't happen, but guard
         const colorTrackId = w.s == null ? -1 : (struct.nodeColorTrack.get(`${w.k}:s:${w.s}`) ?? -1);
-        pts.push({ k: w.k, v: w.v, yv: w.yv, trackId: colorTrackId, roadbed: segments[i].roadbed || "", pavtype: segments[i].pavtype || "", y: yOffset + relY });
+        pts.push({ k: w.k, v: w.v, yv: w.yv, trackId: colorTrackId, id: segments[i].id, roadbed: segments[i].roadbed || "", pavtype: segments[i].pavtype || "", y: yOffset + relY });
       }
       out[i] = pts;
     }
@@ -1116,7 +1273,7 @@
 
     if (!glRenderer) {
       // --- Fallback: original Canvas-2D bar/connector rendering ---------
-      const dimAlpha = hoverActive ? 0.12 : 1;
+      const dimAlpha = hoverActive ? 0.6 : 1;
       const buckets = new Map(); // colorStr -> Path2D
       const gradientBars = []; // units page: per-bar linear-gradient strokes
       for (const [roadIdx, pts] of pointsCache) {
@@ -1183,7 +1340,7 @@
         for (let i = 0; i < segPts.length; i++) {
           const p = segPts[i];
           const x0 = colX(p.k) - halfBar;
-          if (state.colorMode !== "cohort" && state.colorMode !== "highway" && state.colorMode !== "pavtype" && p.yv && p.yv.length) {
+          if (!state.paint.has(p.id) && state.colorMode === "condition" && p.yv && p.yv.length) {
             const N = p.yv.length;
             const cw = (2 * halfBar) / N;
             const alpha = p.trackId < 0 ? FADE_ALPHA : 1;
@@ -1204,9 +1361,11 @@
               }
             }
           } else {
-            // Cohort mode, or data without per-year yv: single flat bar (unchanged).
-            const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : pmisCategoryColor(p.v);
-            const rgba = colorToFloats(color, p.trackId < 0 ? FADE_ALPHA : 1);
+            // Painted (paper §6.3.1) overrides colorMode; else cohort mode or
+            // data without per-year yv: single flat bar.
+            const painted = state.paint.has(p.id);
+            const color = painted ? paintColor(state.paint.get(p.id), p.v) : state.colorMode === "cohort" ? (IS_GEO ? shadeGray(p.v) : cohortColor(p.trackId, p.v)) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : state.colorMode === "condition" ? pmisCategoryColor(p.v) : shadeGray(p.v);
+            const rgba = colorToFloats(color, (!painted && p.trackId < 0) ? FADE_ALPHA : 1);
             bars.push({ x0, x1: colX(p.k) + halfBar, y: p.y, rgba });
           }
         }
@@ -1214,7 +1373,7 @@
           const a = segPts[i], b = segPts[i + 1];
           if (b.k - a.k !== 1) continue; // gap, no connector
           const color = edgeColor(roadIdx, a, b);
-          const rgba = colorToFloats(color, (a.trackId < 0 && b.trackId < 0) ? FADE_ALPHA : 1);
+          const rgba = colorToFloats(color, (!state.paint.has(a.id) && a.trackId < 0 && b.trackId < 0) ? FADE_ALPHA : 1);
           connectors.push({
             ax: colX(a.k) + halfBar, ay: a.y,
             bx: colX(b.k) - halfBar, by: b.y,
@@ -1230,7 +1389,7 @@
 
   function drawGL() {
     const hoverActive = !!state.hover;
-    const barAlpha = hoverActive ? 0.12 : 1;
+    const barAlpha = hoverActive ? 0.6 : 1;
     const connectorAlpha = barAlpha * 0.8;
     glRenderer.draw(state.viewportW, state.viewportH, state.scrollLeft, state.scrollTop, barAlpha, connectorAlpha);
   }
@@ -1255,7 +1414,7 @@
       const p = pts[i];
       const faded = p.trackId < 0;
       const x0 = colX(p.k) - halfBar;
-      if (state.colorMode !== "cohort" && state.colorMode !== "highway" && state.colorMode !== "pavtype" && p.yv && p.yv.length) {
+      if (!state.paint.has(p.id) && state.colorMode === "condition" && p.yv && p.yv.length) {
         if (BAR_ENCODING === "gradient" && gradientBars) {
           // Units page: collect for a per-bar linear-gradient stroke (drawn
           // outside the solid-color Path2D buckets). Skips batching, which is
@@ -1270,8 +1429,8 @@
           bars.lineTo(x0 + (j + 1) * cw, p.y);
         }
       } else {
-        const color = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : pmisCategoryColor(p.v);
-        const { bars } = bucketFor(buckets, color, faded);
+        const color = state.paint.has(p.id) ? paintColor(state.paint.get(p.id), p.v) : state.colorMode === "cohort" ? (IS_GEO ? shadeGray(p.v) : cohortColor(p.trackId, p.v)) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : state.colorMode === "condition" ? pmisCategoryColor(p.v) : shadeGray(p.v);
+        const { bars } = bucketFor(buckets, color, state.paint.has(p.id) ? false : faded);
         bars.moveTo(x0, p.y);
         bars.lineTo(colX(p.k) + halfBar, p.y);
       }
@@ -1280,7 +1439,7 @@
       const a = pts[i], b = pts[i + 1];
       if (b.k - a.k !== 1) continue; // gap, no connector
       const color = edgeColor(roadIdx, a, b);
-      const faded = (a.trackId < 0 && b.trackId < 0);
+      const faded = (!state.paint.has(a.id) && a.trackId < 0 && b.trackId < 0);
       const { connectors } = bucketFor(buckets, color, faded);
       const ax = colX(a.k) + halfBar, ay = a.y;
       const bx = colX(b.k) - halfBar, by = b.y;
@@ -1292,9 +1451,13 @@
 
   function edgeColor(roadIdx, a, b) {
     const v = avgV(a.v, b.v);
-    if (state.colorMode === "cohort") return cohortColor(a.trackId, v);
+    // Connector joins two windows of the SAME entity (same id), so paint on
+    // that entity colors the connector too (paper §6.3.1).
+    if (state.paint.has(a.id)) return paintColor(state.paint.get(a.id), v);
+    if (state.colorMode === "cohort") return IS_GEO ? shadeGray(v) : cohortColor(a.trackId, v);
     if (state.colorMode === "highway") return highwayColor(a.roadbed, v);
     if (state.colorMode === "pavtype") return pavTypeColor(a.pavtype, v);
+    if (state.colorMode !== "condition") return shadeGray(v);
     if (BAR_ENCODING === "gradient") return shadeBlue(v); // units page: match blue bars
     return pmisCategoryColor(v);
   }
@@ -1320,7 +1483,7 @@
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
       const x0 = colX(p.k) - halfBar, x1 = colX(p.k) + halfBar;
-      if (BAR_ENCODING === "gradient" && state.colorMode !== "cohort" && state.colorMode !== "highway" && state.colorMode !== "pavtype" && p.yv && p.yv.length) {
+      if (!state.paint.has(p.id) && BAR_ENCODING === "gradient" && state.colorMode === "condition" && p.yv && p.yv.length) {
         // Units page: match the normal per-year blue gradient bars.
         const grad = ctx.createLinearGradient(x0, 0, x1, 0);
         const N = p.yv.length;
@@ -1330,7 +1493,7 @@
         }
         ctx.strokeStyle = grad;
       } else {
-        ctx.strokeStyle = state.colorMode === "cohort" ? cohortColor(p.trackId, p.v) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : pmisCategoryColor(p.v);
+        ctx.strokeStyle = state.paint.has(p.id) ? paintColor(state.paint.get(p.id), p.v) : state.colorMode === "cohort" ? (IS_GEO ? shadeGray(p.v) : cohortColor(p.trackId, p.v)) : state.colorMode === "highway" ? highwayColor(p.roadbed, p.v) : state.colorMode === "pavtype" ? pavTypeColor(p.pavtype, p.v) : state.colorMode === "condition" ? pmisCategoryColor(p.v) : shadeGray(p.v);
       }
       ctx.beginPath();
       ctx.moveTo(x0, p.y);
@@ -1380,13 +1543,27 @@
 
   canvas.addEventListener("click", onCanvasClick);
 
-  function onCanvasClick(evt) {
-    if (!hitIndex) return;
-    const rect = canvasWrap.getBoundingClientRect();
-    const x = evt.clientX - rect.left + state.scrollLeft;
-    const y = evt.clientY - rect.top + state.scrollTop;
-    const k = Math.round((x - MARGIN_LEFT - state.colW / 2) / colPitch());
+  // Suppress the trailing `click` the browser fires after a brush drag: the
+  // EvoLens brush is a left-button drag on this same canvas, and its release
+  // synthesizes a click at the up-point. Without this guard a shift-drag brush
+  // would spuriously toggle enforce-align (and a plain brush would fire paint).
+  // We record the mousedown point and, if the pointer moved more than
+  // CLICK_DRAG_SLOP_PX before the click, treat it as a drag and ignore the
+  // click. mousedown and click both fire on `canvas`, so clientX/Y are
+  // comparable (EvoLens's own mousedown only calls preventDefault, not
+  // stopPropagation, so this listener still runs).
+  const CLICK_DRAG_SLOP_PX = 5;
+  let clickDownX = 0, clickDownY = 0;
+  canvas.addEventListener("mousedown", (e) => {
+    clickDownX = e.clientX;
+    clickDownY = e.clientY;
+  });
 
+  // Resolve the point at (k, y) to its cohort and toggle enforce-align on it:
+  // out-of-range / no-hit / singleton -> clearEnforce(); same cohort already
+  // enforced -> clearEnforce() (toggle off); otherwise set state.enforcedAlign
+  // and recomputeEnforce().
+  function enforceAlignAtPoint(k, y) {
     // Click outside any column, or on empty space -> clear enforcement.
     if (k < 0 || k >= state.numWindows) return clearEnforce();
     const hit = nearestInSortedY(hitIndex[k], y, HOVER_HIT_PX);
@@ -1405,6 +1582,251 @@
     state.enforcedAlign = { roadIdx: hit.roadIdx, k, s: cell.s };
     recomputeEnforce();
   }
+
+  function onCanvasClick(evt) {
+    if (!hitIndex) return;
+    // Ignore clicks that conclude a drag (brush): decouples brushing from
+    // click / shift-click / paint. See CLICK_DRAG_SLOP_PX above.
+    if (Math.hypot(evt.clientX - clickDownX, evt.clientY - clickDownY) > CLICK_DRAG_SLOP_PX) return;
+    const rect = canvasWrap.getBoundingClientRect();
+    const x = evt.clientX - rect.left + state.scrollLeft;
+    const y = evt.clientY - rect.top + state.scrollTop;
+    const k = Math.round((x - MARGIN_LEFT - state.colW / 2) / colPitch());
+
+    // Shift-click enforce-aligns the clicked cohort on ANY page (including the
+    // geo/distance page where the map is present and plain click is reserved for
+    // brushing/paint). Takes precedence over the paint branch and mapMode no-op.
+    if (evt.shiftKey) {
+      enforceAlignAtPoint(k, y);
+      return;
+    }
+
+    // Paper §6.3.1: when a palette swatch is armed, a click paints the clicked
+    // session's entities instead of enforce-aligning.
+    if (state.activePaintColor) {
+      if (k < 0 || k >= state.numWindows) return;
+      const hitP = nearestInSortedY(hitIndex[k], y, HOVER_HIT_PX);
+      if (!hitP) return;
+      applyPaintAt(hitP.roadIdx, hitP.segIdx, k);
+      return;
+    }
+
+    // On the map (geo/distance) page, map selection comes from BRUSHING only, so
+    // a plain canvas click does nothing. Pages without a map keep enforce-align.
+    const mapMode = !!(window.StorylineMap && window.StorylineMap.showHulls);
+    if (mapMode) return;
+
+    enforceAlignAtPoint(k, y);
+  }
+
+  // --- Paper §6.3.1 click-to-color -----------------------------------------
+  //
+  // Paint (or erase) every entity comprised by the clicked session at window k.
+  // Color is anchored to the entity id, so it persists across ALL windows the
+  // entity appears in (never flips on cohort split/merge). No map on these
+  // per-year geo pages, so paint is storyline-only.
+  function applyPaintAt(roadIdx, segIdx, k) {
+    const struct = state.structures[roadIdx];
+    const cell = struct.segKMap[segIdx].get(k);
+    if (!cell || cell.s == null) return; // singleton / no session: nothing to color
+    const road = state.data.roads[roadIdx];
+    const memberIds = [];
+    for (let i = 0; i < road.segments.length; i++) {
+      const c = struct.segKMap[i].get(k);
+      if (c && c.s === cell.s) memberIds.push(road.segments[i].id);
+    }
+    if (!memberIds.length) return;
+
+    const armed = state.activePaintColor;
+    if (armed === "__erase__") {
+      for (const id of memberIds) state.paint.delete(id);
+      syncMapPaint();
+    } else {
+      for (const id of memberIds) state.paint.set(id, armed);
+      if (window.StorylineMap && window.StorylineMap.paint) {
+        window.StorylineMap.paint(memberIds.map(String), hexToRgbArray(armed));
+      }
+    }
+    render();
+  }
+
+  // Rebuild the map's persistent paint from state.paint (no-op when no map).
+  function syncMapPaint() {
+    if (!(window.StorylineMap && window.StorylineMap.paint)) return;
+    if (window.StorylineMap.clearPaint) window.StorylineMap.clearPaint();
+    const byColor = new Map();
+    for (const [id, hex] of state.paint) {
+      let arr = byColor.get(hex);
+      if (!arr) { arr = []; byColor.set(hex, arr); }
+      arr.push(String(id));
+    }
+    for (const [hex, ids] of byColor) window.StorylineMap.paint(ids, hexToRgbArray(hex));
+  }
+
+  // Wire the paint palette toolbar (only present on geo pages via #paintPalette).
+  function setupPaintPalette() {
+    const palette = document.getElementById("paintPalette");
+    const picker = document.getElementById("paintColor");
+    if (!palette || !picker) return;
+    const toggle = document.getElementById("paintToggle");
+    let armed = false;
+    function setArmed(on) {
+      armed = on;
+      state.activePaintColor = on ? picker.value : null;
+      if (toggle) toggle.classList.toggle("active", on);
+    }
+    if (toggle) toggle.addEventListener("click", () => setArmed(!armed));
+    function onPick() {
+      if (armed) state.activePaintColor = picker.value; // live-update while armed
+    }
+    picker.addEventListener("input", onPick);
+    picker.addEventListener("change", onPick);
+    const eraser = document.getElementById("paintEraser");
+    if (eraser) eraser.addEventListener("click", () => {
+      armed = false;
+      state.activePaintColor = "__erase__";
+      if (toggle) toggle.classList.remove("active");
+    });
+    const clearBtn = document.getElementById("paintClear");
+    if (clearBtn) clearBtn.addEventListener("click", () => {
+      state.paint.clear();
+      armed = false;
+      state.activePaintColor = null;
+      if (toggle) toggle.classList.remove("active");
+      if (window.StorylineMap && window.StorylineMap.clearPaint) window.StorylineMap.clearPaint();
+      if (state.data) render();
+    });
+  }
+  setupPaintPalette();
+
+  // --- Cohort-spread map selections (ported from storyline.js) --------------
+  //
+  // Each "selection" is one brushed cohort set, tracked across ALL windows
+  // (per-year: each window k is a single year). A module-level `mapWindow`
+  // selects which year's slice is rendered as segment-highlight groups on the
+  // map. EvoLens brushing feeds selections in via __addMapSelectionFromGroups.
+  const mapSelections = [];
+  let mapWindow = 0;
+
+  // Partition a selection's member segments by their cohort session id at each
+  // window, producing sub-groups of section ids per window. Segments with no
+  // data at a window are dropped; singletons (s == null) are pooled into one
+  // neutral sub-group.
+  function buildTimelineByWindow(memberSegs) {
+    const byWindow = new Map();
+    for (let k = 0; k < state.numWindows; k++) {
+      const bySession = new Map();
+      const singletons = [];
+      for (const m of memberSegs) {
+        const struct = state.structures[m.roadIdx];
+        const cell = struct && struct.segKMap[m.segIdx].get(k);
+        if (!cell) continue; // no data at this window
+        if (cell.s == null) {
+          singletons.push(m.id);
+        } else {
+          const key = m.roadIdx + ":" + cell.s;
+          let g = bySession.get(key);
+          if (!g) {
+            g = { sectionIds: [], roadIdx: m.roadIdx, s: cell.s, v: cell.v };
+            bySession.set(key, g);
+          }
+          g.sectionIds.push(m.id);
+        }
+      }
+      const groups = [];
+      for (const g of bySession.values()) groups.push(g);
+      if (singletons.length) {
+        groups.push({ sectionIds: singletons, roadIdx: null, s: null, v: null });
+      }
+      byWindow.set(k, groups);
+    }
+    return byWindow;
+  }
+
+  // Shared selection-commit path: build the per-window timeline, append the
+  // selection, optionally jump the current window to `k`, and re-render.
+  function commitMapSelection(memberSegs, k) {
+    mapSelections.push({
+      memberSegs,
+      timelineByWindow: buildTimelineByWindow(memberSegs),
+    });
+    if (k != null) {
+      mapWindow = Math.max(0, Math.min(state.numWindows - 1, k | 0));
+      if (typeof window.__onMapWindowChange === "function") {
+        window.__onMapWindowChange(mapWindow);
+      }
+    }
+    refreshMapHulls();
+  }
+
+  // Rebuild the map's segment highlights for the current `mapWindow`. The group
+  // color mirrors the USER'S PAINT (paint palette or Highlight-cohort menu): if
+  // any of a sub-group's sections are painted, the group takes that paint hex;
+  // otherwise it falls back to neutral UNAFF_GRAY. Painted sections are also
+  // drawn on the map's paint layer in the same hex, so the two layers agree (no
+  // conflict). The automatic CATEGORICAL cohort palette is intentionally unused.
+  function refreshMapHulls() {
+    if (!(window.StorylineMap && window.StorylineMap.showHulls)) return;
+    const hullGroups = [];
+    for (const sel of mapSelections) {
+      const subGroups = sel.timelineByWindow.get(mapWindow) || [];
+      for (const sg of subGroups) {
+        const sectionIds = sg.sectionIds;
+        if (!(sectionIds && sectionIds.length)) continue;
+        let color = UNAFF_GRAY; // uncolored cohort: neutral hue
+        for (const id of sectionIds) {
+          const hex = state.paint.get(id);
+          if (hex) { color = hex; break; } // painted cohort: use the paint color
+        }
+        hullGroups.push({ sectionIds, color });
+      }
+    }
+    window.StorylineMap.showHulls(hullGroups);
+  }
+
+  // --- Bridge globals for the map's year slider ----------------------------
+  window.__setMapWindow = function (k) {
+    if (!state.numWindows) return;
+    k = Math.max(0, Math.min(state.numWindows - 1, k | 0));
+    mapWindow = k;
+    refreshMapHulls();
+  };
+  window.__getMapWindow = function () { return mapWindow; };
+  window.__getNumWindows = function () { return state.numWindows || 0; };
+  window.__getWindowLabel = function (k) {
+    const w = state.data && state.data.windows && state.data.windows[k];
+    if (!w) return "";
+    if (w.label) return w.label;
+    if (w.start != null && w.end != null) return w.start + "–" + w.end;
+    return String(k);
+  };
+  // Add a cohort-spread selection from EvoLens brushed segments. `groups` is
+  // [{ roadIdx, segIdxList:[segIdx...] }, ...]. No-op unless the map is present.
+  window.__addMapSelectionFromGroups = function (groups, kStart) {
+    if (!(window.StorylineMap && window.StorylineMap.showHulls)) return;
+    if (!Array.isArray(groups) || !groups.length) return;
+    const memberSegs = [];
+    for (const group of groups) {
+      const roadIdx = group.roadIdx;
+      const road = state.data.roads[roadIdx];
+      if (!road) continue;
+      for (const segIdx of group.segIdxList || []) {
+        const seg = road.segments[segIdx];
+        const id = seg && seg.id;
+        if (id != null) memberSegs.push({ roadIdx, segIdx, id: String(id) });
+      }
+    }
+    if (!memberSegs.length) return;
+    commitMapSelection(memberSegs, kStart);
+  };
+
+  // Empty all cohort-spread selections and clear the blobs.
+  window.__clearMapSelections = function () {
+    mapSelections.length = 0;
+    if (window.StorylineMap && window.StorylineMap.clearHulls) {
+      window.StorylineMap.clearHulls();
+    }
+  };
 
   function clearEnforce() {
     if (!state.enforcedAlign) return;
@@ -1633,6 +2055,23 @@
   bindSlider(colWEl, "colWOut", "colW", true);
   bindSlider(colGapEl, "colGapOut", "colGap", true);
 
+  // Session-filter (ths) slider: only active on geo pages that opt in via
+  // window.STORYLINE_BROWSER_FILTER and that actually include the #ths control.
+  // Changing ths re-runs the structure build (which does the filtering), so we
+  // rebuild structures -> geometry -> render, mirroring recomputeEnforce().
+  const thsEl = document.getElementById("ths");
+  if (thsEl && window.STORYLINE_BROWSER_FILTER) {
+    const thsOut = document.getElementById("thsOut");
+    thsEl.addEventListener("input", () => {
+      state.ths = Math.max(1, parseInt(thsEl.value, 10) || 1);
+      if (thsOut) thsOut.textContent = state.ths;
+      if (!state.data) return;
+      buildAllStructures();
+      buildGeometry();
+      render();
+    });
+  }
+
   window.addEventListener("resize", () => {
     if (state.data) render();
   });
@@ -1651,8 +2090,38 @@
   // brush-select segments and draw a selection overlay, without touching
   // the layout/rendering internals above. See evolens.js for the feature.
   // ------------------------------------------------------------------------
+
+  // Enforce-align the cohort that the given section ids belong to at window k.
+  // Mirrors onCanvasClick's resolution: find the FIRST id that maps to a
+  // non-null cohort cell at k, set state.enforcedAlign, and rebuild via the
+  // private recomputeEnforce() (structures -> geometry -> render). Returns true
+  // if a cohort was enforced (and rendered), false otherwise (and clears).
+  function enforceCohortByIds(k, ids) {
+    if (!state.data || !Array.isArray(ids) || k == null) { clearEnforce(); return false; }
+    const idIndex = new Map();
+    for (let r = 0; r < state.data.roads.length; r++) {
+      const segs = state.data.roads[r].segments;
+      for (let i = 0; i < segs.length; i++) idIndex.set(String(segs[i].id), { roadIdx: r, segIdx: i });
+    }
+    for (const id of ids) {
+      const loc = idIndex.get(String(id));
+      if (!loc) continue;
+      const struct = state.structures[loc.roadIdx];
+      const cell = struct && struct.segKMap[loc.segIdx].get(k);
+      if (cell && cell.s != null) {
+        state.enforcedAlign = { roadIdx: loc.roadIdx, k, s: cell.s };
+        recomputeEnforce();
+        return true;
+      }
+    }
+    clearEnforce();
+    return false;
+  }
+
   window.__storyline = {
     state,
+    enforceCohort: enforceCohortByIds,
+    clearEnforceAlign: () => { if (state.data) clearEnforce(); },
     canvas,
     canvasWrap,
     colX,

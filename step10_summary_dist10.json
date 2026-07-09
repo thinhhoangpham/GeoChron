@@ -1,0 +1,205 @@
+{
+  "seed": 42,
+  "windows": [
+    {
+      "k": 0,
+      "n_nodes": 4593,
+      "n_edges": 29991,
+      "n_sessions": 1181,
+      "n_singletons": 1076,
+      "largest_session": 418
+    },
+    {
+      "k": 1,
+      "n_nodes": 5592,
+      "n_edges": 35678,
+      "n_sessions": 1404,
+      "n_singletons": 1269,
+      "largest_session": 656
+    },
+    {
+      "k": 2,
+      "n_nodes": 6363,
+      "n_edges": 44456,
+      "n_sessions": 1468,
+      "n_singletons": 1332,
+      "largest_session": 457
+    },
+    {
+      "k": 3,
+      "n_nodes": 7312,
+      "n_edges": 48093,
+      "n_sessions": 1732,
+      "n_singletons": 1581,
+      "largest_session": 637
+    },
+    {
+      "k": 4,
+      "n_nodes": 8011,
+      "n_edges": 49297,
+      "n_sessions": 1917,
+      "n_singletons": 1768,
+      "largest_session": 625
+    },
+    {
+      "k": 5,
+      "n_nodes": 8606,
+      "n_edges": 46267,
+      "n_sessions": 2330,
+      "n_singletons": 2162,
+      "largest_session": 727
+    },
+    {
+      "k": 6,
+      "n_nodes": 8913,
+      "n_edges": 47558,
+      "n_sessions": 2587,
+      "n_singletons": 2402,
+      "largest_session": 581
+    },
+    {
+      "k": 7,
+      "n_nodes": 9359,
+      "n_edges": 49745,
+      "n_sessions": 2915,
+      "n_singletons": 2724,
+      "largest_session": 603
+    },
+    {
+      "k": 8,
+      "n_nodes": 9651,
+      "n_edges": 61601,
+      "n_sessions": 2927,
+      "n_singletons": 2733,
+      "largest_session": 586
+    },
+    {
+      "k": 9,
+      "n_nodes": 9792,
+      "n_edges": 58784,
+      "n_sessions": 3116,
+      "n_singletons": 2912,
+      "largest_session": 579
+    },
+    {
+      "k": 10,
+      "n_nodes": 10064,
+      "n_edges": 56156,
+      "n_sessions": 3234,
+      "n_singletons": 3021,
+      "largest_session": 560
+    },
+    {
+      "k": 11,
+      "n_nodes": 10454,
+      "n_edges": 57557,
+      "n_sessions": 3535,
+      "n_singletons": 3321,
+      "largest_session": 583
+    },
+    {
+      "k": 12,
+      "n_nodes": 10879,
+      "n_edges": 59747,
+      "n_sessions": 3741,
+      "n_singletons": 3524,
+      "largest_session": 672
+    },
+    {
+      "k": 13,
+      "n_nodes": 11060,
+      "n_edges": 49889,
+      "n_sessions": 4117,
+      "n_singletons": 3881,
+      "largest_session": 723
+    },
+    {
+      "k": 14,
+      "n_nodes": 11128,
+      "n_edges": 50112,
+      "n_sessions": 4182,
+      "n_singletons": 3943,
+      "largest_session": 497
+    },
+    {
+      "k": 15,
+      "n_nodes": 10918,
+      "n_edges": 45025,
+      "n_sessions": 4074,
+      "n_singletons": 3861,
+      "largest_session": 754
+    },
+    {
+      "k": 16,
+      "n_nodes": 10849,
+      "n_edges": 44546,
+      "n_sessions": 4114,
+      "n_singletons": 3903,
+      "largest_session": 475
+    },
+    {
+      "k": 17,
+      "n_nodes": 9637,
+      "n_edges": 45193,
+      "n_sessions": 3311,
+      "n_singletons": 3098,
+      "largest_session": 637
+    },
+    {
+      "k": 18,
+      "n_nodes": 9655,
+      "n_edges": 45449,
+      "n_sessions": 3190,
+      "n_singletons": 2973,
+      "largest_session": 446
+    },
+    {
+      "k": 19,
+      "n_nodes": 9680,
+      "n_edges": 46734,
+      "n_sessions": 3106,
+      "n_singletons": 2887,
+      "largest_session": 610
+    },
+    {
+      "k": 20,
+      "n_nodes": 9271,
+      "n_edges": 37884,
+      "n_sessions": 3075,
+      "n_singletons": 2852,
+      "largest_session": 523
+    },
+    {
+      "k": 21,
+      "n_nodes": 9274,
+      "n_edges": 37721,
+      "n_sessions": 3257,
+      "n_singletons": 3029,
+      "largest_session": 407
+    },
+    {
+      "k": 22,
+      "n_nodes": 9407,
+      "n_edges": 34602,
+      "n_sessions": 3419,
+      "n_singletons": 3205,
+      "largest_session": 399
+    },
+    {
+      "k": 23,
+      "n_nodes": 9368,
+      "n_edges": 34592,
+      "n_sessions": 3583,
+      "n_singletons": 3390,
+      "largest_session": 470
+    },
+    {
+      "k": 24,
+      "n_nodes": 8030,
+      "n_edges": 24194,
+      "n_sessions": 3363,
+      "n_singletons": 3164,
+      "largest_session": 340
+    }
+  ]
+}

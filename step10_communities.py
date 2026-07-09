@@ -22,8 +22,10 @@ import networkx as nx
 
 RULE = sys.argv[1] if len(sys.argv) > 1 else "hwcounty"
 assert RULE in ("county", "hwcounty")
+THR  = float(sys.argv[2]) if len(sys.argv) > 2 else 0.7  # correlation threshold (matches step6)
+tag  = "" if abs(THR - 0.7) < 1e-9 else f"_thr{round(THR*100)}"
 
-IN_DIR  = f"step9_network_W5_{RULE}"
+IN_DIR  = f"step9_network_W5_{RULE}{tag}"
 SEED    = 42
 
 windows_out = []
@@ -58,6 +60,6 @@ for fn in sorted(os.listdir(IN_DIR)):
     print(f"{k:>3} {G.number_of_nodes():>7} {G.number_of_edges():>8} "
           f"{len(sessions):>9} {singles:>11} {max(sizes) if sizes else 0:>8}")
 
-json.dump({"windows": windows_out}, open(f"step10_communities_W5_{RULE}.json", "w"))
-json.dump(summary, open(f"step10_summary_{RULE}.json", "w"), indent=2)
-print(f"\nwrote step10_communities_W5_{RULE}.json + step10_summary_{RULE}.json")
+json.dump({"windows": windows_out}, open(f"step10_communities_W5_{RULE}{tag}.json", "w"))
+json.dump(summary, open(f"step10_summary_{RULE}{tag}.json", "w"), indent=2)
+print(f"\nwrote step10_communities_W5_{RULE}{tag}.json + step10_summary_{RULE}{tag}.json")

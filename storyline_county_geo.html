@@ -5,7 +5,14 @@
 <title>Storyline Visualization — by county only (experimental)</title>
 <link rel="stylesheet" href="storyline.css">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script>window.STORYLINE_DATA_FILE = "storyline_data_county_geo.json";</script>
+<script>window.STORYLINE_DATA_FILE = "storyline_data_county_geo.json"; window.STORYLINE_BROWSER_FILTER = true;</script>
+<style>
+  #paintPalette { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  #paintPalette .paint-label { font-size: 12px; color: #555; margin-right: 4px; }
+  #paintPalette .paint-color { width: 28px; height: 24px; border: 1px solid #999; border-radius: 4px; cursor: pointer; padding: 0; background: none; }
+  #paintPalette .paint-btn { font-size: 12px; padding: 3px 8px; cursor: pointer; }
+  #paintPalette .paint-btn.active { outline: 2px solid #111; outline-offset: 1px; box-shadow: inset 0 0 0 2px #111; }
+</style>
 </head>
 <body>
   <header id="toolbar">
@@ -25,12 +32,16 @@
       <label class="ctl">
         <span>Color mode</span>
         <select id="colorMode">
-          <option value="condition" selected>Condition (RdYlGn)</option>
+          <option value="condition" selected>Condition</option>
           <option value="cohort">Cohort hue</option>
           <option value="highway">Highway hue</option>
           <option value="pavtype">Pavement type</option>
         </select>
       </label>
+
+      <!-- Map toggle lives in the toolbar row so it never overlaps the
+           EvoLens panel's top-right close (✕) button. -->
+      <button id="mapToggle" type="button" title="Show/hide map">🗺 Map</button>
     </div>
 
     <div class="toolbar-row sliders">
@@ -54,6 +65,17 @@
         <span>Window gap <output id="colGapOut">24</output>px</span>
         <input id="colGap" type="range" min="0" max="160" step="2" value="24">
       </label>
+      <label class="ctl slider">
+        <span>Session filter (ths) <output id="thsOut">5</output></span>
+        <input id="ths" type="range" min="1" max="30" step="1" value="5">
+      </label>
+    </div>
+    <div class="toolbar-row" id="paintPalette" title="Pick a color, then click a session to color the entities it comprises (paper section 6.3.1)">
+      <span class="paint-label">Paint sessions</span>
+      <input type="color" id="paintColor" class="paint-color" value="#d62728" title="Pick any paint color">
+      <button type="button" class="paint-btn" id="paintToggle" title="Arm/disarm painting with the chosen color">Paint</button>
+      <button type="button" class="paint-btn" id="paintEraser" title="Erase color from a clicked session">Eraser</button>
+      <button type="button" class="paint-btn" id="paintClear" title="Clear all painted colors">Clear colors</button>
     </div>
     <div id="status" class="status">Loading storyline_data_county.json...</div>
   </header>
@@ -76,14 +98,211 @@
   <div id="tooltip" class="hidden"></div>
   <div id="colorLegend" class="hidden"></div>
 
+  <!-- Floating, draggable ArcGIS map panel (geo page only). -->
+  <div id="mapPanel" class="hidden">
+    <div id="mapPanelBar">
+      <span id="mapPanelTitle">Map — brush the storyline to select cohorts</span>
+      <button id="mapPanelClose" type="button" title="Hide map">✕</button>
+    </div>
+    <div id="mapPalette">
+      <button id="mapClearColors" type="button" title="Clear map selections">Clear</button>
+    </div>
+    <div id="mapTimeline">
+      <span id="mapTimelineLabel">Window</span>
+      <input id="mapWindowSlider" type="range" min="0" max="25" step="1" value="0">
+      <output id="mapWindowYears">—</output>
+    </div>
+    <div id="mapView"></div>
+  </div>
+
+  <style>
+    #mapToggle {
+      align-self: center;
+      font: 13px/1 system-ui, sans-serif; padding: 6px 10px;
+      background: #1f2937; color: #fff; border: 1px solid #374151;
+      border-radius: 6px; cursor: pointer;
+    }
+    #mapToggle:hover { background: #374151; }
+    #mapPanel {
+      position: fixed; top: 48px; right: 12px; z-index: 1100;
+      width: 640px; height: 520px; min-width: 240px; min-height: 180px;
+      background: #fff; border: 1px solid #9ca3af; border-radius: 6px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+      display: flex; flex-direction: column; overflow: hidden; resize: both;
+    }
+    #mapPanel.hidden { display: none; }
+    #mapPanelBar {
+      flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 8px; background: #1f2937; color: #fff; cursor: move;
+      font: 12px/1.4 system-ui, sans-serif; user-select: none;
+    }
+    #mapPanelClose {
+      background: transparent; color: #fff; border: none; cursor: pointer;
+      font-size: 14px; line-height: 1; padding: 0 2px;
+    }
+    #mapView { flex: 1 1 auto; min-height: 0; }
+    #mapPalette {
+      flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      padding: 5px 8px; background: #f3f4f6; border-bottom: 1px solid #d1d5db;
+      font: 12px/1.4 system-ui, sans-serif; color: #374151;
+    }
+    #mapClearColors {
+      flex: 0 0 auto; font: 12px/1 system-ui, sans-serif; padding: 4px 8px;
+      background: #fff; color: #374151; border: 1px solid #9ca3af;
+      border-radius: 4px; cursor: pointer;
+    }
+    #mapClearColors:hover { background: #e5e7eb; }
+    #mapTimeline {
+      flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+      padding: 5px 8px; background: #f3f4f6; border-bottom: 1px solid #d1d5db;
+      font: 12px/1.4 system-ui, sans-serif; color: #374151;
+    }
+    #mapTimelineLabel { flex: 0 0 auto; }
+    #mapWindowSlider { flex: 1 1 auto; }
+    #mapWindowYears {
+      flex: 0 0 auto; min-width: 84px; text-align: right;
+      font-variant-numeric: tabular-nums; color: #111827; font-weight: 600;
+    }
+  </style>
+
   <script>
     // Dev cache-buster: load app scripts fresh each reload, preserving order.
-    for (const s of ["storyline_align.js", "storyline.js", "heatmap.js", "evolens.js"]) {
+    // storyline_map.js is included here (geo page only) so the hover→map hook
+    // in storyline.js has window.StorylineMap available. init() is deferred
+    // until the panel is first opened to avoid loading ArcGIS + the ~6.5MB
+    // geojson when the user never opens the map.
+    for (const s of ["storyline_align.js", "storyline.js", "heatmap.js", "evolens.js", "storyline_map.js"]) {
       const el = document.createElement("script");
       el.src = s + "?t=" + Date.now();
       el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order
       document.head.appendChild(el);
     }
+  </script>
+
+  <script>
+    // Floating map panel: toggle, close, lazy init, drag-by-title-bar.
+    (function () {
+      const toggle = document.getElementById("mapToggle");
+      const panel = document.getElementById("mapPanel");
+      const bar = document.getElementById("mapPanelBar");
+      const closeBtn = document.getElementById("mapPanelClose");
+      let mapInited = false;
+
+      function openPanel() {
+        panel.classList.remove("hidden");
+        if (!mapInited && window.StorylineMap && window.StorylineMap.init) {
+          mapInited = true;
+          window.StorylineMap.init("mapView");
+        }
+      }
+      function closePanel() { panel.classList.add("hidden"); }
+
+      toggle.addEventListener("click", function () {
+        if (panel.classList.contains("hidden")) openPanel(); else closePanel();
+      });
+      closeBtn.addEventListener("click", closePanel);
+
+      // Minimal drag: mousedown on the title bar moves the panel. Switches the
+      // panel from right/top anchoring to left/top so movement is absolute.
+      let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+      bar.addEventListener("mousedown", function (e) {
+        if (e.target === closeBtn) return;
+        dragging = true;
+        const r = panel.getBoundingClientRect();
+        panel.style.left = r.left + "px";
+        panel.style.top = r.top + "px";
+        panel.style.right = "auto";
+        startX = e.clientX; startY = e.clientY;
+        startLeft = r.left; startTop = r.top;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        panel.style.left = (startLeft + e.clientX - startX) + "px";
+        panel.style.top = (startTop + e.clientY - startY) + "px";
+      });
+      window.addEventListener("mouseup", function () { dragging = false; });
+    })();
+  </script>
+
+  <script>
+    // "Clear" button: empties the brush-driven map selections and clears their
+    // hull blobs. Map selection comes from brushing the storyline only; there is
+    // no manual color palette.
+    (function () {
+      const clearBtn = document.getElementById("mapClearColors");
+      clearBtn.addEventListener("click", function () {
+        // Empty the cohort-spread selections and clear their hull blobs.
+        if (typeof window.__clearMapSelections === "function") {
+          window.__clearMapSelections();
+        }
+        // Reset any storyline-side selection state left over from earlier
+        // interactions so the two models don't conflict.
+        if (window.Storyline && typeof window.Storyline.clearSelection === "function") {
+          window.Storyline.clearSelection();
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    // Time slider: drives the current window index for the cohort-spread hull
+    // blobs. `storyline.js` owns the state via window.__setMapWindow /
+    // __getMapWindow / __getNumWindows / __getWindowLabel. This block only
+    // bridges the range input to those globals and keeps the year label + the
+    // slider position in sync (including when a pick jumps the window).
+    (function () {
+      const slider = document.getElementById("mapWindowSlider");
+      const yearsOut = document.getElementById("mapWindowYears");
+
+      function updateYears(k) {
+        let label = "";
+        if (typeof window.__getWindowLabel === "function") {
+          label = window.__getWindowLabel(k);
+        }
+        yearsOut.textContent = label || String(k);
+      }
+
+      // Pull the real window count from the app once it has loaded its data.
+      function syncRange() {
+        if (typeof window.__getNumWindows === "function") {
+          const n = window.__getNumWindows();
+          if (n > 0) slider.max = String(n - 1);
+        }
+        if (typeof window.__getMapWindow === "function") {
+          const k = window.__getMapWindow();
+          const clamped = Math.max(0, Math.min(Number(slider.max), k | 0));
+          slider.value = String(clamped);
+          updateYears(clamped);
+        } else {
+          updateYears(Number(slider.value));
+        }
+      }
+
+      slider.addEventListener("input", function () {
+        const k = Number(slider.value);
+        if (typeof window.__setMapWindow === "function") window.__setMapWindow(k);
+        updateYears(k);
+      });
+
+      // A pick jumps the current window; reflect that on the slider + label.
+      window.__onMapWindowChange = function (k) {
+        syncRange(); // in case data (and thus max) just became available
+        slider.value = String(k);
+        updateYears(k);
+      };
+
+      // The app data may not be ready when this runs; retry range sync briefly.
+      let tries = 0;
+      const timer = setInterval(function () {
+        tries += 1;
+        if ((typeof window.__getNumWindows === "function" && window.__getNumWindows() > 0) || tries > 40) {
+          syncRange();
+          if (window.__getNumWindows && window.__getNumWindows() > 0) clearInterval(timer);
+        }
+      }, 250);
+      syncRange();
+    })();
   </script>
 </body>
 </html>

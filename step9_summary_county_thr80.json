@@ -1,0 +1,160 @@
+{
+  "rule": "same county",
+  "n_proximity_groups": 117,
+  "sections_without_meta": 0,
+  "windows": [
+    {
+      "k": 0,
+      "corr_edges": 800125,
+      "kept": 85128,
+      "retained_pct": 10.639
+    },
+    {
+      "k": 1,
+      "corr_edges": 1079618,
+      "kept": 116409,
+      "retained_pct": 10.782
+    },
+    {
+      "k": 2,
+      "corr_edges": 1508366,
+      "kept": 176370,
+      "retained_pct": 11.693
+    },
+    {
+      "k": 3,
+      "corr_edges": 1940673,
+      "kept": 228481,
+      "retained_pct": 11.773
+    },
+    {
+      "k": 4,
+      "corr_edges": 2144505,
+      "kept": 230312,
+      "retained_pct": 10.74
+    },
+    {
+      "k": 5,
+      "corr_edges": 2191850,
+      "kept": 231633,
+      "retained_pct": 10.568
+    },
+    {
+      "k": 6,
+      "corr_edges": 2271437,
+      "kept": 240696,
+      "retained_pct": 10.597
+    },
+    {
+      "k": 7,
+      "corr_edges": 2372313,
+      "kept": 251226,
+      "retained_pct": 10.59
+    },
+    {
+      "k": 8,
+      "corr_edges": 3007510,
+      "kept": 298750,
+      "retained_pct": 9.933
+    },
+    {
+      "k": 9,
+      "corr_edges": 2781850,
+      "kept": 279104,
+      "retained_pct": 10.033
+    },
+    {
+      "k": 10,
+      "corr_edges": 2700515,
+      "kept": 269469,
+      "retained_pct": 9.978
+    },
+    {
+      "k": 11,
+      "corr_edges": 2757659,
+      "kept": 289630,
+      "retained_pct": 10.503
+    },
+    {
+      "k": 12,
+      "corr_edges": 2972706,
+      "kept": 300269,
+      "retained_pct": 10.101
+    },
+    {
+      "k": 13,
+      "corr_edges": 2662451,
+      "kept": 258349,
+      "retained_pct": 9.703
+    },
+    {
+      "k": 14,
+      "corr_edges": 2728684,
+      "kept": 285572,
+      "retained_pct": 10.466
+    },
+    {
+      "k": 15,
+      "corr_edges": 2598905,
+      "kept": 232134,
+      "retained_pct": 8.932
+    },
+    {
+      "k": 16,
+      "corr_edges": 2649586,
+      "kept": 238990,
+      "retained_pct": 9.02
+    },
+    {
+      "k": 17,
+      "corr_edges": 2955515,
+      "kept": 203440,
+      "retained_pct": 6.883
+    },
+    {
+      "k": 18,
+      "corr_edges": 2755547,
+      "kept": 197344,
+      "retained_pct": 7.162
+    },
+    {
+      "k": 19,
+      "corr_edges": 2692315,
+      "kept": 192770,
+      "retained_pct": 7.16
+    },
+    {
+      "k": 20,
+      "corr_edges": 2221407,
+      "kept": 144700,
+      "retained_pct": 6.514
+    },
+    {
+      "k": 21,
+      "corr_edges": 2193870,
+      "kept": 151074,
+      "retained_pct": 6.886
+    },
+    {
+      "k": 22,
+      "corr_edges": 1982395,
+      "kept": 133465,
+      "retained_pct": 6.733
+    },
+    {
+      "k": 23,
+      "corr_edges": 2011813,
+      "kept": 122228,
+      "retained_pct": 6.076
+    },
+    {
+      "k": 24,
+      "corr_edges": 1261439,
+      "kept": 89111,
+      "retained_pct": 7.064
+    }
+  ],
+  "total_corr_edges": 57243054,
+  "total_kept": 5246654,
+  "overall_retained_pct": 9.166
+}

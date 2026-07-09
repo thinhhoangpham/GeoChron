@@ -26,7 +26,7 @@
       <label class="ctl">
         <span>Color mode</span>
         <select id="colorMode">
-          <option value="condition" selected>Condition (PMIS categories)</option>
+          <option value="condition" selected>Condition</option>
           <option value="cohort">Cohort hue</option>
           <option value="highway">Highway hue</option>
           <option value="pavtype">Pavement type</option>
@@ -71,8 +71,14 @@
   <div id="tooltip" class="hidden"></div>
   <div id="colorLegend" class="hidden"></div>
 
-  <script src="storyline_peryear.js"></script>
-  <script src="heatmap.js"></script>
-  <script src="evolens.js"></script>
+  <script>
+    // Dev cache-buster: load app scripts fresh each reload, preserving order.
+    for (const s of ["storyline_align.js", "storyline_peryear.js", "heatmap.js", "evolens.js"]) {
+      const el = document.createElement("script");
+      el.src = s + "?t=" + Date.now();
+      el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order
+      document.head.appendChild(el);
+    }
+  </script>
 </body>
 </html>

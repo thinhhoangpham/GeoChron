@@ -20,13 +20,16 @@ Inputs : windows_W5.json (membership + cols), section_year_matrix.csv (raw)
 Output : step6_edges_W5/win{k:02d}.npz  (arrays i, j : int32 section indices)
          step6_summary.json
 """
-import csv, json, os
+import csv, json, os, sys
 import numpy as np
 
 WIN_FILE    = "windows_W5.json"
 MATRIX      = "section_year_matrix.csv"
-OUT_DIR     = "step6_edges_W5"
-THR         = 0.7     # Step 7 correlation threshold
+THR         = float(sys.argv[1]) if len(sys.argv) > 1 else 0.7  # Step 7 correlation threshold
+# filename tag: empty at the default 0.7 (keeps the original lineage byte-for-byte),
+# "_thr80" at 0.8, etc. -- additive so 0.7 consumers are untouched.
+tag         = "" if abs(THR - 0.7) < 1e-9 else f"_thr{round(THR*100)}"
+OUT_DIR     = f"step6_edges_W5{tag}"
 MIN_OVERLAP = 4       # min real overlapping years for a pair to count
 BLOCK       = 1500    # rows per block (memory vs speed)
 
@@ -108,6 +111,6 @@ for k, w in enumerate(windows):
     print(f"{k:>3} {w['start']}-{w['end']} {N:>7} {i_idx.size:>12} {dens:>9.5f}")
 
 summary["total_edges"] = total_edges
-json.dump(summary, open("step6_summary.json", "w"), indent=2)
+json.dump(summary, open(f"step6_summary{tag}.json", "w"), indent=2)
 print(f"\ntotal edges across {len(windows)} windows: {total_edges:,}")
-print(f"wrote {OUT_DIR}/win*.npz + step6_summary.json")
+print(f"wrote {OUT_DIR}/win*.npz + step6_summary{tag}.json")

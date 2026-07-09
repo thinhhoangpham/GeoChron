@@ -40,7 +40,27 @@
     const SL = window.__storyline;
     const { state, canvas, canvasWrap, colX, colPitch, MARGIN_LEFT, visibleRoadIndices, getPointsCache, redraw } = SL;
     const UNIT_MODE = window.STORYLINE_DRILLDOWN_MODE === "unit";
-    const MAX_SELECTED_UNITS = 40;
+
+    // Per-year storyline pages collapse each column to a single middle year
+    // (window k has start === end === middle year), whereas window-range pages
+    // keep the real 5-year span (start !== end). Detect from the data so we do
+    // not depend on the HTML page setting a flag. On per-year pages the drilled
+    // chart is expanded to the true 5-year correlation window [middle-2 ..
+    // middle+2] behind each column, with the middle year(s) highlighted.
+    const isPerYear = state.data.windows.length > 0 &&
+      state.data.windows.every((w) => w.start === w.end);
+    const EN_DASH = "–";
+
+    // Subtitle range label. In per-year mode we make the expanded correlation
+    // window vs. the column's focus year(s) explicit; otherwise keep the
+    // original "start–end" span (window-range pages must be unchanged).
+    function rangeLabel(yearStart, yearEnd, focusStart, focusEnd) {
+      if (!isPerYear) return `${yearStart}${EN_DASH}${yearEnd}`;
+      const focus = focusStart === focusEnd
+        ? `${focusStart}`
+        : `${focusStart}${EN_DASH}${focusEnd}`;
+      return `correlation window ${yearStart}${EN_DASH}${yearEnd} (focus ${focus})`;
+    }
 
     // ------------------------------------------------------------------
     // DOM: panel + brush hint, injected once
@@ -67,7 +87,7 @@
     const brushHint = document.createElement("div");
     brushHint.id = "evolensHint";
     brushHint.className = "evolens-hint hidden";
-    brushHint.textContent = "Select a single road to drill down";
+    brushHint.textContent = "Drag a box to drill down";
     canvasWrap.appendChild(brushHint);
 
     const closeBtn = panel.querySelector("#evolensClose");
@@ -151,7 +171,11 @@
         }
         return;
       }
+      // Segment mode: brushing is always available (overview + filtered view).
+      // Show the drill-down hint in the overview, hide it once a single road is
+      // selected (the view is already focused), mirroring unit mode.
       if (state.selectedRoadIdx < 0) {
+        brushHint.textContent = "Drag a box to drill down";
         brushHint.classList.remove("hidden");
       } else {
         brushHint.classList.add("hidden");
@@ -169,7 +193,6 @@
     document.addEventListener("click", updateBrushHintVisibility, true);
 
     canvas.addEventListener("mousedown", (evt) => {
-      if (!UNIT_MODE && state.selectedRoadIdx < 0) return; // brushing disabled in All-roads view (segment mode only)
       if (evt.button !== 0) return;
       brushing = true;
       const rect = canvasWrap.getBoundingClientRect();
@@ -239,19 +262,29 @@
     // Brush -> window range -> segment selection
     // ------------------------------------------------------------------
     function handleBrushEnd(worldRect) {
-      const roadIdx = state.selectedRoadIdx;
-      if (!UNIT_MODE && roadIdx < 0) return; // simplest robust option: single-road only (v1)
-
       const pitch = colPitch();
-      let kMin = Math.floor((worldRect.x0 - MARGIN_LEFT) / pitch);
-      let kMax = Math.floor((worldRect.x1 - MARGIN_LEFT) / pitch);
+      const colW = state.colW;
+      let kMin = Math.round((worldRect.x0 - MARGIN_LEFT - colW / 2) / pitch);
+      let kMax = Math.round((worldRect.x1 - MARGIN_LEFT - colW / 2) / pitch);
       kMin = Math.max(0, Math.min(state.numWindows - 1, kMin));
       kMax = Math.max(0, Math.min(state.numWindows - 1, kMax));
       if (kMin > kMax) return;
 
       const windows = state.data.windows;
-      const yearStart = windows[kMin].start;
-      const yearEnd = windows[kMax].end;
+      // Focus range = the column middle year(s) (same as the pre-existing
+      // yearStart/yearEnd on window-range pages).
+      const focusStart = windows[kMin].start;
+      const focusEnd = windows[kMax].end;
+      // Expanded correlation-window range. On per-year pages each column's
+      // cohort/correlation was computed over the 5-year window
+      // [middle-2 .. middle+2], so widen the drilled chart to match; the chart
+      // clamps to available years via the evData.years filter downstream.
+      let yearStart = focusStart;
+      let yearEnd = focusEnd;
+      if (isPerYear) {
+        yearStart = focusStart - 2;
+        yearEnd = focusEnd + 2;
+      }
 
       if (UNIT_MODE) {
         // Unit mode: select across every visible road (band; all roads in the
@@ -260,8 +293,6 @@
         const pointsCache = getPointsCache();
         const unitKeys = [];
         const seen = new Set();
-        let truncated = false;
-        outer:
         for (const rIdx of visibleRoadIndices()) {
           const pts = pointsCache.get(rIdx);
           if (!pts) continue;
@@ -277,7 +308,6 @@
             const key = road.segments[segIdx].id;
             if (seen.has(key)) continue;
             seen.add(key);
-            if (unitKeys.length >= MAX_SELECTED_UNITS) { truncated = true; break outer; }
             unitKeys.push(key);
           }
         }
@@ -287,31 +317,48 @@
         selectionEl.classList.remove("hidden");
         syncSelectionOverlay();
 
-        openUnitPanel(unitKeys, yearStart, yearEnd, truncated);
+        openUnitPanel(unitKeys, yearStart, yearEnd, focusStart, focusEnd);
         return;
       }
 
+      // Segment mode: collect selected segments across every visible road (the
+      // whole band in the overview, or just the one road in the filtered view,
+      // since visibleRoadIndices() then returns a single index). One group per
+      // road with at least one hit; no selection cap.
       const pointsCache = getPointsCache();
-      const pts = pointsCache.get(roadIdx);
-      if (!pts) return;
-
-      const selectedSegIdx = [];
-      for (let segIdx = 0; segIdx < pts.length; segIdx++) {
-        const segPts = pts[segIdx];
-        let inside = false;
-        for (const p of segPts) {
-          if (p.k < kMin || p.k > kMax) continue;
-          if (p.y >= worldRect.y0 && p.y <= worldRect.y1) { inside = true; break; }
+      const groups = [];
+      let totalSegs = 0;
+      for (const rIdx of visibleRoadIndices()) {
+        const pts = pointsCache.get(rIdx);
+        if (!pts) continue;
+        const segIdxList = [];
+        for (let segIdx = 0; segIdx < pts.length; segIdx++) {
+          const segPts = pts[segIdx];
+          let inside = false;
+          for (const p of segPts) {
+            if (p.k < kMin || p.k > kMax) continue;
+            if (p.y >= worldRect.y0 && p.y <= worldRect.y1) { inside = true; break; }
+          }
+          if (inside) segIdxList.push(segIdx);
         }
-        if (inside) selectedSegIdx.push(segIdx);
+        if (segIdxList.length === 0) continue;
+        groups.push({ roadIdx: rIdx, segIdxList });
+        totalSegs += segIdxList.length;
       }
-      if (selectedSegIdx.length === 0) return;
+      if (totalSegs === 0) return;
 
       activeSelection = { x0: worldRect.x0, y0: worldRect.y0, x1: worldRect.x1, y1: worldRect.y1 };
       selectionEl.classList.remove("hidden");
       syncSelectionOverlay();
 
-      openPanel(roadIdx, selectedSegIdx, yearStart, yearEnd);
+      openPanel(groups, yearStart, yearEnd, focusStart, focusEnd);
+
+      // Additionally feed the brushed segments to the map's cohort-spread (no-op
+      // on non-map pages / when the bridge is absent). EvoLens panel behavior
+      // above is unchanged; this only adds a map selection.
+      if (window.__addMapSelectionFromGroups) {
+        window.__addMapSelectionFromGroups(groups, kMin);
+      }
     }
 
     // ------------------------------------------------------------------
@@ -324,34 +371,56 @@
     }
     closeBtn.addEventListener("click", closePanel);
 
-    function openPanel(roadIdx, segIdxList, yearStart, yearEnd) {
-      const road = state.data.roads[roadIdx];
-      titleEl.textContent = road.roadbed;
+    // Distinct highways (roadbeds) across all brushed groups, using the SAME
+    // per-segment roadbed grouping renderChart uses to emit cards -- so the
+    // title count always equals the number of cards rendered.
+    function distinctRoadbeds(groups) {
+      const set = new Set();
+      for (const group of groups) {
+        const road = state.data.roads[group.roadIdx];
+        for (const segIdx of group.segIdxList) {
+          const seg = road.segments[segIdx];
+          set.add(seg.roadbed || road.roadbed || "?");
+        }
+      }
+      return set;
+    }
+
+    function openPanel(groups, yearStart, yearEnd, focusStart, focusEnd) {
+      const totalSegs = groups.reduce((a, g) => a + g.segIdxList.length, 0);
+      // Title counts DISTINCT highways (roadbeds), matching the in-card heading
+      // and the number of cards renderChart emits. A single highway reads as its
+      // roadbed label (unchanged single-card wording).
+      const roadbeds = distinctRoadbeds(groups);
+      titleEl.textContent = roadbeds.size === 1
+        ? roadbeds.values().next().value
+        : `${roadbeds.size} highways selected`;
       subtitleEl.textContent =
-        `${segIdxList.length} segment${segIdxList.length === 1 ? "" : "s"} selected  |  ${yearStart}–${yearEnd}`;
+        `${totalSegs} segment${totalSegs === 1 ? "" : "s"} selected  |  ` +
+        rangeLabel(yearStart, yearEnd, focusStart, focusEnd);
       panel.classList.add("open");
       panel.classList.remove("hidden");
 
       chartWrapEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
       ensureEvolensData().then((d) => {
-        renderChart(d, road, segIdxList, yearStart, yearEnd);
+        renderChart(d, groups, yearStart, yearEnd, focusStart, focusEnd);
       }).catch((err) => {
         chartWrapEl.innerHTML = `<div class="evolens-loading">Failed to load evolens_data.json: ${err.message}</div>`;
         console.error(err);
       });
     }
 
-    function openUnitPanel(unitKeys, yearStart, yearEnd, truncated) {
+    function openUnitPanel(unitKeys, yearStart, yearEnd, focusStart, focusEnd) {
       titleEl.textContent = "Unit drill-down";
       subtitleEl.textContent =
-        `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected  |  ${yearStart}–${yearEnd}` +
-        (truncated ? `  |  showing first ${MAX_SELECTED_UNITS}` : "");
+        `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected  |  ` +
+        rangeLabel(yearStart, yearEnd, focusStart, focusEnd);
       panel.classList.add("open");
       panel.classList.remove("hidden");
 
       chartWrapEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
       ensureUnitSegments().then((d) => {
-        renderUnitChart(d, unitKeys, yearStart, yearEnd, truncated);
+        renderUnitChart(d, unitKeys, yearStart, yearEnd, focusStart, focusEnd);
       }).catch((err) => {
         chartWrapEl.innerHTML = `<div class="evolens-loading">Failed to load unit_segments_full.json: ${err.message}</div>`;
         console.error(err);
@@ -390,7 +459,15 @@
       return motif;
     }
 
-    function renderUnitChart(unitData, unitKeys, yearStart, yearEnd, truncated) {
+    // Build the focus-band descriptor for drawSvgChart. Only in per-year mode
+    // do we highlight the column's middle year(s) inside the wider correlation
+    // window; window-range mode returns null so no band is drawn.
+    function makeFocusBand(focusStart, focusEnd) {
+      if (!isPerYear || focusStart == null || focusEnd == null) return null;
+      return { start: focusStart, end: focusEnd };
+    }
+
+    function renderUnitChart(unitData, unitKeys, yearStart, yearEnd, focusStart, focusEnd) {
       chartWrapEl.innerHTML = "";
       const years = unitData.years.filter((y) => y >= yearStart && y <= yearEnd);
       if (years.length === 0) {
@@ -401,8 +478,7 @@
 
       const heading = document.createElement("div");
       heading.className = "evolens-heatmap-heading";
-      heading.textContent = `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected` +
-        (truncated ? ` (showing first ${MAX_SELECTED_UNITS})` : "");
+      heading.textContent = `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected`;
       chartWrapEl.appendChild(heading);
 
       const allSeries = [];
@@ -426,10 +502,10 @@
       }
 
       const motif = computeMotif(allSeries);
-      drawSvgChart(years, allSeries, motif);
+      drawSvgChart(years, allSeries, motif, makeFocusBand(focusStart, focusEnd));
     }
 
-    function renderChart(evData, road, segIdxList, yearStart, yearEnd) {
+    function renderChart(evData, groups, yearStart, yearEnd, focusStart, focusEnd) {
       chartWrapEl.innerHTML = "";
       const years = evData.years.filter((y) => y >= yearStart && y <= yearEnd);
       if (years.length === 0) {
@@ -438,46 +514,91 @@
       }
       const yearIdx0 = evData.years.indexOf(years[0]);
 
-      // Per-segment raw series over the brushed years (null preserved = gap).
-      const series = [];
-      for (const segIdx of segIdxList) {
-        const seg = road.segments[segIdx];
-        const raw = evData.scores[seg.id];
-        const vals = years.map((_, i) => (raw ? raw[yearIdx0 + i] : null));
-        vals.forEach((v) => { if (typeof v !== "number" || isNaN(v)) return; });
-        series.push({ id: seg.id, segIdx, values: vals.map((v) => (typeof v === "number" && !isNaN(v) ? v : null)) });
+      // Show ONLY colored (painted) cohorts: a segment is kept iff it is present
+      // in state.paint (the sectionId->hex Map set by the paint palette and the
+      // Highlight-cohort menu; keyed by the raw seg.id, matched via String()).
+      // Fallback: if the brush contains zero colored segments, keep the full set
+      // and render exactly as before (never show an empty panel).
+      const paint = state.paint;
+      const isColored = (seg) => !!paint && paint.has(String(seg.id));
+      const filterColored = groups.some((g) => {
+        const segs = state.data.roads[g.roadIdx].segments;
+        return g.segIdxList.some((si) => isColored(segs[si]));
+      });
+
+      // Split each brushed band group by (highway, county): one card per
+      // (roadbed, county). On hwcounty pages a band is already a single
+      // (highway, county) so this is a no-op (one card, unchanged); on
+      // county/distance pages a highway crossing several counties becomes one
+      // card per county. drawSegmentHeatmap positions cells by reference marker
+      // (seg.begin), which resets per highway -- keying on (roadbed, county)
+      // keeps each card's marker axis correct (and tighter, since a single
+      // highway-county is a contiguous marker sub-range). Cards are emitted in
+      // on-screen band order across groups, and within a group ordered by each
+      // piece's first (lowest) begin marker so nearby pieces read top-to-bottom
+      // by position; a highway's per-county pieces stay adjacent because their
+      // marker ranges are consecutive.
+      const allSeries = [];
+      const cards = []; // { roadbed, county, label, items, firstBegin } across all groups
+      for (const group of groups) {
+        const road = state.data.roads[group.roadIdx];
+        const byRoadCounty = new Map();
+        for (const segIdx of group.segIdxList) {
+          const seg = road.segments[segIdx];
+          if (filterColored && !isColored(seg)) continue; // colored cohorts only
+          const raw = evData.scores[seg.id];
+          const values = years.map((_, i) => {
+            const v = raw ? raw[yearIdx0 + i] : null;
+            return (typeof v === "number" && !isNaN(v)) ? v : null;
+          });
+          const rb = seg.roadbed || road.roadbed || "?";
+          const county = seg.county || "?";
+          const key = rb + "	" + county; // composite key, tab-separated (no collision)
+          let bucket = byRoadCounty.get(key);
+          if (!bucket) { bucket = { roadbed: rb, county, items: [] }; byRoadCounty.set(key, bucket); }
+          bucket.items.push({ seg: { id: seg.id, begin: seg.begin, end: seg.end }, values });
+        }
+        const groupCards = [];
+        for (const bucket of byRoadCounty.values()) {
+          bucket.items.sort((a, b) => a.seg.begin - b.seg.begin);
+          groupCards.push({
+            roadbed: bucket.roadbed,
+            county: bucket.county,
+            label: `${bucket.roadbed} · ${bucket.county}`, // "RB · county"
+            items: bucket.items,
+            firstBegin: bucket.items[0].seg.begin,
+          });
+        }
+        groupCards.sort((a, b) => a.firstBegin - b.firstBegin);
+        cards.push(...groupCards);
       }
 
-      // z-score per segment across its own observed values in this range.
-      const zSeries = series.map((s) => {
-        const observed = s.values.filter((v) => v !== null);
-        const mean = observed.length ? observed.reduce((a, b) => a + b, 0) / observed.length : 0;
-        const variance = observed.length ? observed.reduce((a, b) => a + (b - mean) * (b - mean), 0) / observed.length : 0;
-        const std = Math.sqrt(variance);
-        const z = s.values.map((v) => (v === null ? null : (std > 0 ? (v - mean) / std : 0)));
-        return { id: s.id, values: z };
-      });
+      const totalSegs = cards.reduce((a, c) => a + c.items.length, 0);
+      const heading = document.createElement("div");
+      heading.className = "evolens-heatmap-heading";
+      heading.textContent =
+        `Selected segments by highway + county (${cards.length} card${cards.length === 1 ? "" : "s"}, ${totalSegs} segments)` +
+        (filterColored ? " (colored cohorts only)" : "");
+      chartWrapEl.appendChild(heading);
 
-      // per-year 25th/50th/75th percentile across selected segments' z-values.
-      const motif = years.map((_, yi) => {
-        const vals = zSeries.map((s) => s.values[yi]).filter((v) => v !== null).sort((a, b) => a - b);
-        if (vals.length === 0) return { p25: null, p50: null, p75: null };
-        return { p25: percentile(vals, 0.25), p50: percentile(vals, 0.5), p75: percentile(vals, 0.75) };
-      });
+      for (const card of cards) {
+        chartWrapEl.appendChild(buildRoadCard(card.label, card.items, years));
+        for (const it of card.items) {
+          allSeries.push({ id: it.seg.id, values: it.values });
+        }
+      }
 
-      drawPerRoadHeatmaps(years, series, road);
-      drawSvgChart(years, series, motif);
+      const motif = computeMotif(allSeries);
+      drawSvgChart(years, allSeries, motif, makeFocusBand(focusStart, focusEnd));
     }
 
     // ------------------------------------------------------------------
-    // Per-highway heatmap cards -- same visual language as clusters.html's
+    // Per-road heatmap cards -- same visual language as clusters.html's
     // thumbnail grid (real reference-marker position with big-gap collapse,
     // discrete TxDOT condition-score color buckets, edge-flipping tooltip),
-    // ported directly from clusters.js. A county band can now mix several
-    // highways (Step 8/9's proximity rule may be county-only), so the
-    // brushed selection is first split by each segment's own `roadbed`
-    // field and rendered as one card per highway, rather than one combined
-    // heatmap that would otherwise interleave unrelated roads.
+    // ported directly from clusters.js. renderChart renders one card per
+    // brushed road group (in on-screen band order), so a multi-road overview
+    // brush yields one card per road and a single-road brush yields one card.
     // ------------------------------------------------------------------
     // Color helpers + heatmap renderer live in heatmap.js (window.HeatmapUtil),
     // shared with clusters.js.
@@ -499,28 +620,6 @@
       cellTooltip.style.top = top + "px";
     }
     function hideCellTooltip() { cellTooltip.classList.add("hidden"); }
-
-    function drawPerRoadHeatmaps(years, series, road) {
-      // group the brushed selection by each segment's real highway
-      const byRoadbed = new Map();
-      for (const s of series) {
-        const seg = road.segments[s.segIdx];
-        const rb = (seg && seg.roadbed) || "?";
-        if (!byRoadbed.has(rb)) byRoadbed.set(rb, []);
-        byRoadbed.get(rb).push({ seg, values: s.values });
-      }
-
-      const heading = document.createElement("div");
-      heading.className = "evolens-heatmap-heading";
-      heading.textContent = `Selected segments by highway (${byRoadbed.size} highway${byRoadbed.size === 1 ? "" : "s"}, ${series.length} segments)`;
-      chartWrapEl.appendChild(heading);
-
-      const roadbeds = Array.from(byRoadbed.keys()).sort((a, b) => byRoadbed.get(b).length - byRoadbed.get(a).length);
-      for (const rb of roadbeds) {
-        const items = byRoadbed.get(rb).slice().sort((a, b) => a.seg.begin - b.seg.begin);
-        chartWrapEl.appendChild(buildRoadCard(rb, items, years));
-      }
-    }
 
     function buildRoadCard(roadbedLabel, items, years) {
       const card = document.createElement("div");
@@ -568,7 +667,27 @@
       return sortedArr[lo] * (1 - frac) + sortedArr[hi] * frac;
     }
 
-    function drawSvgChart(years, series, motif) {
+    // Shaded vertical band marking the focus (middle) year(s) of the column(s)
+    // inside the wider correlation window. Appended first into the given group
+    // so it sits behind the series lines. A single-year focus (start === end)
+    // still renders a thin visible band via a small ± padding, clamped to the
+    // plotted year domain.
+    function drawFocusBand(g, x, height, focusBand, years) {
+      const domLo = years[0];
+      const domHi = years[years.length - 1];
+      const lo = Math.max(domLo, focusBand.start - 0.5);
+      const hi = Math.min(domHi, focusBand.end + 0.5);
+      const xLo = x(lo);
+      const xHi = x(hi);
+      g.append("rect")
+        .attr("class", "evolens-focus-band")
+        .attr("x", xLo)
+        .attr("y", 0)
+        .attr("width", Math.max(2, xHi - xLo))
+        .attr("height", height);
+    }
+
+    function drawSvgChart(years, series, motif, focusBand) {
       const width = chartWrapEl.clientWidth || 420;
       const rawHeight = 220;
       const motifHeight = 140;
@@ -588,6 +707,9 @@
       // --- Raw line chart -------------------------------------------------
       const rawG = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // Focus band first so it renders behind axes + series lines.
+      if (focusBand) drawFocusBand(rawG, x, rawHeight, focusBand, years);
 
       let allVals = [];
       for (const s of series) for (const v of s.values) if (v !== null) allVals.push(v);
@@ -627,6 +749,8 @@
       const motifG = svg.append("g")
         .attr("class", "evolens-motif-group")
         .attr("transform", `translate(${margin.left},${margin.top + rawHeight + margin.bottom})`);
+
+      if (focusBand) drawFocusBand(motifG, x, motifHeight, focusBand, years);
 
       let motifZVals = [];
       for (const m of motif) {

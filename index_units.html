@@ -6,7 +6,8 @@
 <link rel="stylesheet" href="storyline.css">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script>window.STORYLINE_DATA_FILE = "storyline_data_units.json";
-window.STORYLINE_DRILLDOWN_MODE = "unit";</script>
+window.STORYLINE_DRILLDOWN_MODE = "unit";
+window.STORYLINE_BAR_ENCODING = "gradient";</script>
 </head>
 <body>
   <header id="toolbar">
@@ -26,7 +27,7 @@ window.STORYLINE_DRILLDOWN_MODE = "unit";</script>
       <label class="ctl">
         <span>Color mode</span>
         <select id="colorMode">
-          <option value="condition" selected>Condition (RdYlGn)</option>
+          <option value="condition" selected>Condition</option>
           <option value="cohort">Cohort hue</option>
         </select>
       </label>
@@ -70,8 +71,14 @@ window.STORYLINE_DRILLDOWN_MODE = "unit";</script>
 
   <div id="tooltip" class="hidden"></div>
 
-  <script src="storyline.js"></script>
-  <script src="heatmap.js"></script>
-  <script src="evolens.js"></script>
+  <script>
+    // Dev cache-buster: load app scripts fresh each reload, preserving order.
+    for (const s of ["storyline_align.js", "storyline.js", "heatmap.js", "evolens.js"]) {
+      const el = document.createElement("script");
+      el.src = s + "?t=" + Date.now();
+      el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order
+      document.head.appendChild(el);
+    }
+  </script>
 </body>
 </html>

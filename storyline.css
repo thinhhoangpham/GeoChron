@@ -94,6 +94,39 @@ html, body {
   padding-top: 4px;
 }
 
+/* ---------- Threshold segmented control ---------- */
+.thr-seg {
+  display: inline-flex;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.thr-btn {
+  font-size: 13px;
+  padding: 4px 12px;
+  border: none;
+  border-left: 1px solid #ccc;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.thr-btn:first-child {
+  border-left: none;
+}
+
+.thr-btn:hover {
+  background: #eef4ff;
+}
+
+.thr-btn.active {
+  background: #2b6cb0;
+  color: #fff;
+}
+
 /* ---------- Scroll area / canvas ---------- */
 #scrollArea {
   position: relative;
@@ -176,6 +209,29 @@ html, body {
 #tooltip.hidden { display: none; }
 
 #tooltip b { color: #ffd479; }
+
+/* ---------- Color legend ---------- */
+#colorLegend {
+  position: fixed;
+  top: 136px; /* clears sticky toolbar (92) + axis (34) row */
+  right: 16px;
+  pointer-events: none;
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: 5px;
+  z-index: 90;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+}
+
+#colorLegend.hidden { display: none; }
+
+.legend-swatch-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.legend-swatch { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+.legend-gradient-bar { width: 140px; height: 10px; border-radius: 2px; margin: 4px 0; }
+.legend-gradient-labels { display: flex; justify-content: space-between; font-size: 10.5px; opacity: 0.85; }
 
 /* ============================================================================
  * EvoLens drill-down (evolens.js). Kept separate from the base Storyline
@@ -294,6 +350,15 @@ html, body {
 .evolens-axis-label {
   font-size: 10px;
   fill: #888;
+}
+
+/* Highlights the column's focus (middle) year(s) within the wider 5-year
+   correlation window on per-year storyline pages. Low opacity so the series
+   lines stay readable on top. */
+.evolens-focus-band {
+  fill: #4e79a7;
+  fill-opacity: 0.12;
+  pointer-events: none;
 }
 
 .evolens-chart-wrap svg .tick text {

@@ -25,11 +25,13 @@ import numpy as np
 
 RULE = sys.argv[1] if len(sys.argv) > 1 else "hwcounty"
 assert RULE in ("county", "hwcounty")
+THR  = float(sys.argv[2]) if len(sys.argv) > 2 else 0.7  # correlation threshold (matches step6)
+tag  = "" if abs(THR - 0.7) < 1e-9 else f"_thr{round(THR*100)}"
 
 WIN_FILE = "windows_W5.json"
 META     = "sections_meta.csv"
-IN_DIR   = "step6_edges_W5"
-OUT_DIR  = f"step9_network_W5_{RULE}"
+IN_DIR   = f"step6_edges_W5{tag}"
+OUT_DIR  = f"step9_network_W5_{RULE}{tag}"
 
 # ---- section order (matches matrix / correlation indices) -------------------
 win = json.load(open(WIN_FILE, encoding="utf-8"))
@@ -87,9 +89,9 @@ for fn in sorted(os.listdir(IN_DIR)):
 summary["total_corr_edges"] = tot_in
 summary["total_kept"] = tot_out
 summary["overall_retained_pct"] = round(100.0 * tot_out / tot_in, 3) if tot_in else 0.0
-json.dump(summary, open(f"step9_summary_{RULE}.json", "w"), indent=2)
+json.dump(summary, open(f"step9_summary_{RULE}{tag}.json", "w"), indent=2)
 print(f"\n[{RULE}] proximity groups: {next_gid:,}"
       f"   sections without meta: {n_unknown}")
 print(f"total edges: {tot_in:,} -> kept {tot_out:,} "
       f"({summary['overall_retained_pct']}%)")
-print(f"wrote {OUT_DIR}/win*.npz + step9_summary_{RULE}.json")
+print(f"wrote {OUT_DIR}/win*.npz + step9_summary_{RULE}{tag}.json")
