@@ -688,7 +688,7 @@
     // ------------------------------------------------------------------
     function setupCoherenceFilter(evData, groups, years, allSeries, motif, chart,
                                   yearStart, yearEnd, focusStart, focusEnd, filterColored) {
-      if (UNIT_MODE || !filterColored || allSeries.length === 0) {
+      if (UNIT_MODE || allSeries.length === 0) {
         coherenceState = null;
         coherenceWrap.classList.add("hidden");
         return;
