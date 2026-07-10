@@ -73,7 +73,7 @@ window.STORYLINE_BAR_ENCODING = "gradient";</script>
 
   <script>
     // Dev cache-buster: load app scripts fresh each reload, preserving order.
-    for (const s of ["storyline_align.js", "storyline.js", "heatmap.js", "evolens.js"]) {
+    for (const s of ["storyline_align.js", "storyline_core.js", "heatmap.js", "evolens.js"]) {
       const el = document.createElement("script");
       el.src = s + "?t=" + Date.now();
       el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order

@@ -1,23 +1,22 @@
-# Graph Report - GeoChron  (2026-07-08)
+# Graph Report - GeoChron  (2026-07-10)
 
 ## Corpus Check
-- 239 files · ~67,098,279 words
+- 246 files · ~67,107,922 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1069 nodes · 1229 edges · 177 communities (76 shown, 101 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 47 edges (avg confidence: 0.7)
+- 1074 nodes · 1169 edges · 184 communities (84 shown, 100 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.71)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9b633a24`
+- Built from commit: `eb462a2d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Storyline Renderer (storyline.js)|Storyline Renderer (storyline.js)]]
 - [[_COMMUNITY_Session Tracking & Storyline Emit (Steps 12-17)|Session Tracking & Storyline Emit (Steps 12-17)]]
-- [[_COMMUNITY_Graphify Skill & Extraction Spec|Graphify Skill & Extraction Spec]]
 - [[_COMMUNITY_Domain Concepts & GeoChron Paper|Domain Concepts & GeoChron Paper]]
 - [[_COMMUNITY_Relation Network & Community Mining (Steps 6-11)|Relation Network & Community Mining (Steps 6-11)]]
 - [[_COMMUNITY_Cluster Viewer (clusters.js)|Cluster Viewer (clusters.js)]]
@@ -81,7 +80,6 @@
 - [[_COMMUNITY_step17_all_storyline.py|step17_all_storyline.py]]
 - [[_COMMUNITY_step4_windows.py|step4_windows.py]]
 - [[_COMMUNITY_normalize|normalize]]
-- [[_COMMUNITY_step6_corr.py|step6_corr.py]]
 - [[_COMMUNITY_graphify reference add a URL and watch a folder|graphify reference: add a URL and watch a folder]]
 - [[_COMMUNITY_graphify reference commit hook and native CLAUDE.md integration|graphify reference: commit hook and native CLAUDE.md integration]]
 - [[_COMMUNITY_graphify reference incremental update and cluster-only|graphify reference: incremental update and cluster-only]]
@@ -191,18 +189,26 @@
 - [[_COMMUNITY_step6_corr_geo.py|step6_corr_geo.py]]
 - [[_COMMUNITY_build_windows_geo.py|build_windows_geo.py]]
 - [[_COMMUNITY_step10_communities_dist.py|step10_communities_dist.py]]
+- [[_COMMUNITY_storyline_core.js|storyline_core.js]]
+- [[_COMMUNITY_Map year-slider condition-colored selected segments|Map: year-slider condition-colored selected segments]]
+- [[_COMMUNITY_build_hmc_flatten_center_figs.py|build_hmc_flatten_center_figs.py]]
+- [[_COMMUNITY_step10_communities_geo.py|step10_communities_geo.py]]
+- [[_COMMUNITY_step17_storyline_geo.py|step17_storyline_geo.py]]
+- [[_COMMUNITY_analyze_cohort_cohesion.py|analyze_cohort_cohesion.py]]
+- [[_COMMUNITY_step17_storyline_peryear_geo.py|step17_storyline_peryear_geo.py]]
+- [[_COMMUNITY_step8_network_geo.py|step8_network_geo.py]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Procedure: Cohort-Based Pavement Trajectory Analysis` - 18 edges
-2. `rebuildGLGeometry()` - 13 edges
-3. `appendLines()` - 12 edges
-4. `edgeColor()` - 12 edges
-5. `warn()` - 12 edges
-6. `rebuildGLGeometry()` - 12 edges
-7. `edgeColor()` - 12 edges
-8. `What You Must Do When Invoked` - 12 edges
-9. `drawHighlighted()` - 11 edges
-10. `appendLines()` - 11 edges
+2. `warn()` - 14 edges
+3. `rebuildGLGeometry()` - 13 edges
+4. `appendLines()` - 12 edges
+5. `edgeColor()` - 12 edges
+6. `flushPending()` - 12 edges
+7. `What You Must Do When Invoked` - 12 edges
+8. `drawHighlighted()` - 11 edges
+9. `/graphify` - 11 edges
+10. `Storyline — Interactive "Enforce Alignment of Sessions" (click-to-align)` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `All Storyline Visualization` --semantically_similar_to--> `Storyline Visualization (base)`  [INFERRED] [semantically similar]
@@ -227,15 +233,11 @@
 - **Windowing and Similarity Pipeline** — procedure_sliding_window, procedure_window_normalize, procedure_threshold_binary [INFERRED 0.75]
 - **Storyline Visualization Page Family** — storyline_page, all_storyline_page, paper_storyline_page, segment_storyline_page, index_page, index_county_page [INFERRED 0.85]
 
-## Communities (177 total, 101 thin omitted)
+## Communities (184 total, 100 thin omitted)
 
 ### Community 0 - "Storyline Renderer (storyline.js)"
 Cohesion: 0.18
 Nodes (12): Air Quality in China Case Study, Evolution Pattern (spatially close + trend-correlated ST series), GeoChron (Visualizing Large-Scale Spatial Time Series), Session-Based Linked Geographic Map, Network Formulation (fuse correlation + proximity, no summed distance), Pattern Mining Framework, Session (evolution pattern as Storyline session), Gradient Shade Trend Encoding (+4 more)
-
-### Community 2 - "Graphify Skill & Extraction Spec"
-Cohesion: 0.07
-Nodes (54): appendLines(), applyPaintAt(), avgV(), bucketFor(), buildAllStructures(), buildAxis(), buildGeometry(), buildHitIndex() (+46 more)
 
 ### Community 4 - "Relation Network & Community Mining (Steps 6-11)"
 Cohesion: 0.13
@@ -445,10 +447,6 @@ Nodes (3): Step 4: Slice the time span into overlapping multi-year windows.  Eac
 Cohesion: 0.50
 Nodes (3): normalize(), Step 5: Normalize each section's W-year sub-trajectory *within each window*.  Fo, vals: list of observed floats. Returns list rescaled per NORM.
 
-### Community 67 - "step6_corr.py"
-Cohesion: 0.08
-Nodes (52): appendLines(), applyPaintAt(), avgV(), bucketFor(), buildAllStructures(), buildAxis(), buildGeometry(), buildHitIndex() (+44 more)
-
 ### Community 68 - "graphify reference: add a URL and watch a folder"
 Cohesion: 0.50
 Nodes (3): For /graphify add, For --watch, graphify reference: add a URL and watch a folder
@@ -494,8 +492,8 @@ Cohesion: 0.50
 Nodes (3): Step 6 + Step 7: Pairwise trend correlation per window, thresholded to binary., All-pairs pairwise-complete Pearson > THR within one window.     Returns (i_idx,, window_edges()
 
 ### Community 164 - "storyline_map.js"
-Cohesion: 0.16
-Nodes (25): clear(), clearHulls(), clearPaint(), doClear(), doClearHulls(), doClearPaint(), doHighlight(), doPaint() (+17 more)
+Cohesion: 0.14
+Nodes (29): clear(), clearHulls(), clearPaint(), clearSelected(), doClear(), doClearHulls(), doClearPaint(), doClearSelected() (+21 more)
 
 ### Community 165 - "HiClimR_GitHub_README.md"
 Cohesion: 0.12
@@ -523,24 +521,58 @@ Nodes (7): clean(), fmt_disp(), fmt_marker(), fnum(), geo_to_roadbed(), main(), 
 
 ### Community 171 - "step8_network_dist.py"
 Cohesion: 0.33
-Nodes (5): haversine_km(), line_vertices(), Step 8/9 (distance gate): continuous spatial proximity filter -- the paper's Sec, Yield [lon,lat] vertices from a LineString or MultiLineString geometry., Great-circle distance (km) between centroids at index arrays i and j.     NaN wh
+Nodes (5): haversine_km(), line_vertices(), Step 8/9 (distance gate): continuous spatial proximity filter -- the paper's Se, Yield [lon,lat] vertices from a LineString or MultiLineString geometry., Great-circle distance (km) between centroids at index arrays i and j.     NaN w
+
+### Community 172 - "step17_storyline_dist.py"
+Cohesion: 0.25
+Nodes (3): connected_components(), Step 17 (distance-gate variant, main/window-range renderer): storyline data for, Union-find over the UNION of all windows' pruned (i,j) edges in `edge_dir`
+
+### Community 173 - "step17_storyline_peryear_dist.py"
+Cohesion: 0.29
+Nodes (3): connected_components(), Step 17 (distance-gate variant, per-year renderer): storyline data with one col, Union-find over the UNION of all windows' pruned (i,j) edges in `edge_dir`
 
 ### Community 174 - "step6_corr_geo.py"
 Cohesion: 0.50
-Nodes (3): Step 6 + Step 7 (geo variant): pairwise trend correlation per window, on the GEO, All-pairs pairwise-complete Pearson > THR within one window.     Returns (i_idx,, window_edges()
+Nodes (3): Step 6 + Step 7 (geo variant): pairwise trend correlation per window, on the GE, All-pairs pairwise-complete Pearson > THR within one window.     Returns (i_idx, window_edges()
+
+### Community 177 - "storyline_core.js"
+Cohesion: 0.07
+Nodes (61): appendLines(), applyPaintAt(), avgV(), bucketFor(), buildAllStructures(), buildAxis(), buildGeometry(), buildHitIndex() (+53 more)
+
+### Community 178 - "Map: year-slider condition-colored selected segments"
+Cohesion: 0.14
+Nodes (13): Current state (verified), Data flow, Design, Edge cases, Map: year-slider condition-colored selected segments, Non-goals, Part 1 — Shared-code refactor, Part 2 — Map API (`storyline_map.js`) (+5 more)
+
+### Community 179 - "build_hmc_flatten_center_figs.py"
+Cohesion: 0.43
+Nodes (7): bin_boundary_lines(), load_target_unit(), main(), make_center_figure(), make_flatten_figure(), Generate two figures for the heatmap-clustering pipeline Obsidian note:   hmc_03, Draw thin vertical lines every `window_len` cells to mark row-major bin     boun
+
+### Community 180 - "step10_communities_geo.py"
+Cohesion: 0.29
+Nodes (7): cl_cluster_component(), connected_components(), corr_matrix(), Step 10 (GEO categorical partition): per-window communities on the geo county /, Union-find over the window's kept partition edges -> list of member-index     gr, Pairwise-complete Pearson r (n x n) + overlap counts for rows of X (NaN gaps)., Complete-linkage cluster one partition component (list of global section
+
+### Community 181 - "step17_storyline_geo.py"
+Cohesion: 0.47
+Nodes (4): Step 17 (GEO categorical partition, main/window-range renderer): storyline data, _win_entry(), wscore(), yvals()
+
+### Community 182 - "analyze_cohort_cohesion.py"
+Cohesion: 0.50
+Nodes (4): main(), pearson_over_idx(), One-off analysis: score cohesion of every cohort (community) across GeoChron coh, Pearson correlation of two per-year arrays over the given indices, using only
+
+### Community 183 - "step17_storyline_peryear_geo.py"
+Cohesion: 0.50
+Nodes (3): Step 17 (GEO categorical partition, per-year renderer): storyline data with one, _win_entry(), year_score()
 
 ## Knowledge Gaps
-- **382 isolated node(s):** `test`, `assert`, `StorylineAlign`, `graphify`, `Usage` (+377 more)
+- **393 isolated node(s):** `test`, `assert`, `StorylineAlign`, `graphify`, `Usage` (+388 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **101 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **100 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **What connects `Per-segment Storyline for ALL corridors, stacked.  Cohorts never cross a roadbed`, `Step 10: Detect communities (sessions) with Louvain, per window.  Each window's`, `Step 6 + Step 7: Pairwise trend correlation per window, thresholded to binary.` to the rest of the system?**
-  _480 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Graphify Skill & Extraction Spec` be split into smaller, more focused modules?**
-  _Cohesion score 0.07403846153846154 - nodes in this community are weakly interconnected._
+- **What connects `One-off analysis: score cohesion of every cohort (community) across GeoChron coh`, `Pearson correlation of two per-year arrays over the given indices, using only`, `Per-segment Storyline for ALL corridors, stacked.  Cohorts never cross a roadbed` to the rest of the system?**
+  _504 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Relation Network & Community Mining (Steps 6-11)` be split into smaller, more focused modules?**
   _Cohesion score 0.1286549707602339 - nodes in this community are weakly interconnected._
 - **Should `PPTX Presentation Builder` be split into smaller, more focused modules?**
@@ -551,3 +583,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.12418300653594772 - nodes in this community are weakly interconnected._
 - **Should `Unit Clustering (no-fill)` be split into smaller, more focused modules?**
   _Cohesion score 0.12418300653594772 - nodes in this community are weakly interconnected._
+- **Should `Task 1 Report: Emit per-year `yv` array in the data generator` be split into smaller, more focused modules?**
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._

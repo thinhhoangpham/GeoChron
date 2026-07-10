@@ -36,6 +36,7 @@
   var baseLayer = null;       // GeoJSONLayer (all segments, neutral)
   var highlightLayer = null;  // GraphicsLayer (transient highlights on top)
   var hullLayer = null;       // GraphicsLayer (cohort-spread convex-hull blobs)
+  var selectedLayer = null;   // GraphicsLayer (year condition-colored selection)
   var paintLayer = null;      // GraphicsLayer (persistent click-to-color paint)
   var paintedGraphics = null; // Map<sectionId, Graphic> currently painted
   var geomLookup = null;      // Map<sectionId, coordinates[][]> (WGS84 lon/lat)
@@ -316,6 +317,30 @@
     if (hullLayer) hullLayer.removeAll();
   }
 
+  // --- Condition-colored selection (year slider) ---------------------------
+  //
+  // Draw the current selection's real segment polylines, each in the color the
+  // caller assigns for the chosen year (idToColor = Map<sectionId, cssColor>).
+  // Lives on selectedLayer, which sits BELOW paint/hull/highlight so user paint
+  // and transient highlights still draw on top. Replaces the hull-blob path for
+  // selections. Ids not present in idToColor (unsurveyed in the chosen year)
+  // are simply not drawn.
+  function doShowSelectedByCondition(idToColor) {
+    if (!selectedLayer) return;
+    selectedLayer.removeAll();
+    if (!idToColor || typeof idToColor.forEach !== "function") return;
+    var graphics = [];
+    idToColor.forEach(function (color, sectionId) {
+      var g = makeHighlightGraphic(sectionId, color);
+      if (g) graphics.push(g);
+    });
+    if (graphics.length) selectedLayer.addMany(graphics);
+  }
+
+  function doClearSelected() {
+    if (selectedLayer) selectedLayer.removeAll();
+  }
+
   // Fit the view to the union extent of the given section ids' coordinates.
   function doZoomTo(sectionIds) {
     if (!view || !sectionIds || !sectionIds.length) return;
@@ -363,6 +388,8 @@
         else if (op.type === "clearPaint") doClearPaint();
         else if (op.type === "showHulls") doShowHulls(op.groups);
         else if (op.type === "clearHulls") doClearHulls();
+        else if (op.type === "showSelectedByCondition") doShowSelectedByCondition(op.idToColor);
+        else if (op.type === "clearSelected") doClearSelected();
         else if (op.type === "zoomTo") doZoomTo(op.sectionIds);
       } catch (e) {
         warn("failed replaying queued " + op.type, e);
@@ -418,6 +445,7 @@
         }
       });
 
+      selectedLayer = new esri.GraphicsLayer({ id: "storyline-selected" });
       paintLayer = new esri.GraphicsLayer({ id: "storyline-paint" });
       paintedGraphics = new Map();
       hullLayer = new esri.GraphicsLayer({ id: "storyline-hulls" });
@@ -425,6 +453,7 @@
 
       map = new esri.Map({ basemap: "gray-vector" });
       map.add(baseLayer);
+      map.add(selectedLayer);  // year condition-colored selection (below paint)
       map.add(paintLayer);     // persistent colors above base
       map.add(hullLayer);      // cohort-spread convex-hull blobs
       map.add(highlightLayer); // transient highlights on top
@@ -530,6 +559,30 @@
     }
   }
 
+  function showSelectedByCondition(idToColor) {
+    if (!initialized) {
+      pendingOps.push({ type: "showSelectedByCondition", idToColor: idToColor });
+      return;
+    }
+    try {
+      doShowSelectedByCondition(idToColor);
+    } catch (e) {
+      warn("showSelectedByCondition failed", e);
+    }
+  }
+
+  function clearSelected() {
+    if (!initialized) {
+      pendingOps.push({ type: "clearSelected" });
+      return;
+    }
+    try {
+      doClearSelected();
+    } catch (e) {
+      warn("clearSelected failed", e);
+    }
+  }
+
   // Returns an array of the section ids currently painted (may be empty).
   function paintedSectionIds() {
     if (!paintedGraphics) return [];
@@ -558,6 +611,8 @@
     clearPaint: clearPaint,
     showHulls: showHulls,
     clearHulls: clearHulls,
+    showSelectedByCondition: showSelectedByCondition,
+    clearSelected: clearSelected,
     paintedSectionIds: paintedSectionIds,
     zoomTo: zoomTo,
     get ready() { return readyPromise; },

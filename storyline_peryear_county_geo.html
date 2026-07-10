@@ -5,7 +5,7 @@
 <title>Storyline Visualization — per-year, by county only</title>
 <link rel="stylesheet" href="storyline.css">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script>window.STORYLINE_DATA_FILE = "storyline_data_peryear_county_geo.json"; window.STORYLINE_BROWSER_FILTER = true;</script>
+<script>window.STORYLINE_DATA_FILE = "storyline_data_peryear_county_geo.json"; window.IS_PERYEAR = true; window.STORYLINE_BROWSER_FILTER = true;</script>
 <style>
   #paintPalette { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   #paintPalette .paint-label { font-size: 12px; color: #555; margin-right: 4px; }
@@ -91,7 +91,7 @@
 
   <script>
     // Dev cache-buster: load app scripts fresh each reload, preserving order.
-    for (const s of ["storyline_align.js", "storyline_peryear.js", "heatmap.js", "evolens.js"]) {
+    for (const s of ["storyline_align.js", "storyline_core.js", "heatmap.js", "evolens.js"]) {
       const el = document.createElement("script");
       el.src = s + "?t=" + Date.now();
       el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order

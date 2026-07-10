@@ -1,5 +1,5 @@
 /* ============================================================================
- * Storyline visualization
+ * Storyline visualization (shared core)
  *
  * Renders a GeoChron-style "Storyline" (Fig 5D) for pavement-condition
  * segment cohorts across time windows. Each road is laid out independently
@@ -10,12 +10,29 @@
  * is no anchor/interpolation/big-jump logic; every segment has a genuine
  * stacked position in every window it has data for.
  *
+ * SHARED MODULE: this is the single implementation loaded by all 10
+ * storyline*.html pages (window and per-year). The only page-level fork is
+ * window.IS_PERYEAR (set in an inline <script> alongside
+ * window.STORYLINE_DATA_FILE): per-year datasets carry single-year windows
+ * with win[k].v as the year score, whereas window datasets carry 5-year
+ * windows with win[k].yv[] holding the per-year scores. This flag only
+ * affects the year lookup (condByYear) used by the map's year slider; every
+ * other code path is identical. Condition color mode is pmisCategoryColor on
+ * ALL pages (the 5 discrete PMIS categories), never a RdYlGn gradient. Map
+ * calls are all guarded by `if (window.StorylineMap ...)`, so they are safe
+ * no-ops on the pages that do not load storyline_map.js.
+ *
  * No build step. Plain ES2017+. d3 is used only for color scales/categorical
- * palettes (loaded from CDN in storyline.html).
+ * palettes (loaded from CDN in the host HTML page).
  * ==========================================================================*/
 
 (function () {
   "use strict";
+
+  // Page-level fork: per-year datasets vs window datasets. Only affects the
+  // year lookup for the map's year slider (see buildCondByYear). Everything
+  // else is shared.
+  const IS_PERYEAR = !!window.IS_PERYEAR;
 
   // ------------------------------------------------------------------------
   // Constants / DOM refs
@@ -535,6 +552,66 @@
   // frequently during development -- default fetch caching (and even
   // no-store alone, against some browser disk caches) was serving stale
   // JSON after pipeline re-runs.
+  // --- Year lookup for the map's year slider -------------------------------
+  //
+  // condByYear: Map<sectionId(string), Map<year(number), score(number)>>.
+  // Built once per load. Drives showSelectedByCondition: at a given year we
+  // color each selected segment by pmisCategoryColor(score) and drop segments
+  // with no survey that year (temporal filter). null/missing scores are simply
+  // absent from the inner map (= "not surveyed that year").
+  //
+  // Two dataset shapes (see the IS_PERYEAR flag):
+  //   - Per-year datasets: windows are single-year (windows[k].start == end)
+  //     and seg.win[j].v is that year's score. year = windows[win[j].k].start,
+  //     score = win[j].v.
+  //   - Window datasets: windows span 5 years and seg.win[j].yv is the array of
+  //     per-year raw scores for windows[k].start .. start+4. Windows overlap so
+  //     the same (segment, year) appears in up to 5 windows with the same raw
+  //     value; the last write wins (all writes are equal), so no explicit
+  //     dedupe is needed.
+  let condByYear = new Map();
+  let yearMin = null;
+  let yearMax = null;
+
+  function buildCondByYear(data) {
+    condByYear = new Map();
+    yearMin = null;
+    yearMax = null;
+    if (!data || !Array.isArray(data.roads)) return;
+    const windows = data.windows || [];
+
+    const note = (id, year, score) => {
+      if (score === null || score === undefined || isNaN(score)) return;
+      let inner = condByYear.get(id);
+      if (!inner) { inner = new Map(); condByYear.set(id, inner); }
+      inner.set(year, score);
+      if (yearMin === null || year < yearMin) yearMin = year;
+      if (yearMax === null || year > yearMax) yearMax = year;
+    };
+
+    for (const road of data.roads) {
+      const segs = (road && road.segments) || [];
+      for (const seg of segs) {
+        if (!seg || seg.id == null || !Array.isArray(seg.win)) continue;
+        const id = String(seg.id);
+        for (const w of seg.win) {
+          if (!w || w.k == null) continue;
+          const win = windows[w.k];
+          if (!win || win.start == null) continue;
+          if (IS_PERYEAR) {
+            // Single-year window: win[j].v is the score for windows[w.k].start.
+            note(id, win.start, w.v);
+          } else if (Array.isArray(w.yv)) {
+            // 5-year window: yv[i] is the score for year win.start + i.
+            for (let i = 0; i < w.yv.length; i++) {
+              note(id, win.start + i, w.yv[i]);
+            }
+          }
+        }
+      }
+    }
+  }
+
   function loadData(file) {
     statusEl.textContent = `Loading ${file}...`;
     fetch(`${file}?t=${Date.now()}`, { cache: "no-store" })
@@ -545,6 +622,7 @@
       .then((data) => {
         state.data = data;
         state.numWindows = (data.windows || []).length;
+        buildCondByYear(data);
         statusEl.textContent = `Loaded ${data.roads.length} roads. Building layout...`;
         // Defer heavy work a tick so the status text paints first.
         setTimeout(() => {
@@ -1663,7 +1741,7 @@
     // On the map (geo) page, map selection comes from BRUSHING only, so a plain
     // canvas click does nothing (no paint, no selection). All other pages keep
     // the enforce-align behavior.
-    const mapMode = !!(window.StorylineMap && window.StorylineMap.showHulls);
+    const mapMode = !!(window.StorylineMap && window.StorylineMap.showSelectedByCondition);
     if (mapMode) return;
 
     enforceAlignAtPoint(k, y);
@@ -1719,17 +1797,25 @@
   // Persistently drop a set of segment ids from the active paint/cohort
   // everywhere (storyline canvas + geographic map). Mirrors the erase path in
   // applyPaintAt: mutate state.paint, rebuild the map paint from what survives,
-  // recolor the map hulls, then redraw the storyline. Exposed on
-  // window.__storyline for EvoLens's coherence filter. Deletes both the string
-  // and raw-typed key so it matches however the id was stored.
+  // drop the ids from the map selections, re-render the selected segments, then
+  // redraw the storyline. Exposed on window.__storyline for EvoLens's coherence
+  // filter. Deletes both the string and raw-typed key so it matches however the
+  // id was stored.
   function unpaintSegments(ids) {
+    const drop = new Set();
     for (const id of ids) {
       state.paint.delete(String(id));
       state.paint.delete(id);
+      drop.add(String(id));
     }
-    syncMapPaint();      // rebuild map paint from surviving state.paint
-    refreshMapHulls();   // recolor map hulls for the current window
-    draw();              // redraw storyline canvas with updated paint
+    // Also remove these ids from any map selection so the coherence filter
+    // stops drawing them on the map (they no longer belong to the cohort).
+    for (const sel of mapSelections) {
+      sel.ids = sel.ids.filter((sid) => !drop.has(sid));
+    }
+    syncMapPaint();        // rebuild map paint from surviving state.paint
+    refreshMapSelected();  // re-render selected segments for the current year
+    draw();                // redraw storyline canvas with updated paint
   }
 
   // Wire the paint palette toolbar (only present on geo pages via #paintPalette).
@@ -1768,137 +1854,111 @@
   }
   setupPaintPalette();
 
-  // --- Cohort-spread map selections ----------------------------------------
+  // --- Map selections: condition-colored segments by year ------------------
   //
-  // Each "selection" is one clicked cohort, tracked across ALL windows:
-  //   {
-  //     memberSegs: [{ roadIdx, segIdx, id }], // the cohort's members (one road)
-  //     timelineByWindow: Map<k, SubGroup[]>   // per-window partition of the
-  //                                            //   members into sub-groups
-  //                                            //   (cohorts at k); each SubGroup
-  //                                            //   is { sectionIds, roadIdx, s, v }
-  //   }
-  // A module-level current window index `mapWindow` selects which slice of the
-  // timelines is rendered as convex-hull blobs. Sliding the window re-partitions
-  // (splitting/merging the blobs) without re-picking.
-  const mapSelections = [];
-  let mapWindow = 0;
+  // A brushed/drilled selection is now rendered as its REAL segment geometries
+  // on the map, colored by each segment's PMIS condition category for the year
+  // the map slider points at (mapYear). Segments not surveyed in that year are
+  // not drawn (temporal filter). This replaces the old per-window convex-hull
+  // ("blob") rendering: showHulls is no longer called for selections.
+  //
+  // Each selection stores just its member section ids (the brushed cohort's
+  // segments). Colors come from condByYear + pmisCategoryColor, not user paint,
+  // so the map answers "what condition were these segments in year Y?".
+  const mapSelections = []; // [{ ids: [sectionId string, ...] }]
+  // Current year the slider points at; null until data + slider initialize.
+  let mapYear = null;
 
-  // Partition a selection's member segments by their cohort session id at each
-  // window, producing sub-groups of section ids per window. Segments with no
-  // data at a window are dropped; singletons (s == null) are pooled into a
-  // single sub-group (they belong to the same picked cohort, so grouping them
-  // keeps the blob count sane rather than exploding into one blob per point).
-  function buildTimelineByWindow(memberSegs) {
-    const byWindow = new Map();
-    for (let k = 0; k < state.numWindows; k++) {
-      // "roadIdx:s" -> { sectionIds, roadIdx, s, v }. Each sub-group carries the
-      // cohort identity (roadIdx + session s) and a representative condition
-      // value v so refreshMapHulls can resolve the cohort's real color.
-      const bySession = new Map();
-      const singletons = [];
-      for (const m of memberSegs) {
-        const struct = state.structures[m.roadIdx];
-        const cell = struct && struct.segKMap[m.segIdx].get(k);
-        if (!cell) continue; // no data at this window
-        if (cell.s == null) {
-          singletons.push(m.id);
-        } else {
-          const key = m.roadIdx + ":" + cell.s;
-          let g = bySession.get(key);
-          if (!g) {
-            g = { sectionIds: [], roadIdx: m.roadIdx, s: cell.s, v: cell.v };
-            bySession.set(key, g);
-          }
-          g.sectionIds.push(m.id);
-        }
-      }
-      const groups = [];
-      for (const g of bySession.values()) groups.push(g);
-      // Singletons (s == null) pooled into one neutral sub-group.
-      if (singletons.length) {
-        groups.push({ sectionIds: singletons, roadIdx: null, s: null, v: null });
-      }
-      byWindow.set(k, groups);
-    }
-    return byWindow;
+  // Map slider is a YEAR slider: index k in [0, yearSpan-1] maps to year
+  // yearMin + k. Helpers translate between the slider index and the year.
+  function yearSpan() {
+    if (yearMin === null || yearMax === null) return 0;
+    return yearMax - yearMin + 1;
+  }
+  function yearForIndex(k) {
+    if (yearMin === null) return null;
+    return yearMin + Math.max(0, Math.min(yearSpan() - 1, k | 0));
   }
 
-  // Shared selection-commit path used by the EvoLens brush bridge: builds the
-  // per-window timeline for the given member segments, appends the selection,
-  // optionally jumps the current window to `k`, and re-renders the blobs.
-  // Sub-group colors are resolved per window in refreshMapHulls from each
-  // cohort's real color (see there); no base color is stored on the selection.
-  function commitMapSelection(memberSegs, k) {
-    mapSelections.push({
-      memberSegs,
-      timelineByWindow: buildTimelineByWindow(memberSegs),
-    });
-    if (k != null) {
-      mapWindow = Math.max(0, Math.min(state.numWindows - 1, k | 0));
-      if (typeof window.__onMapWindowChange === "function") {
-        window.__onMapWindowChange(mapWindow);
-      }
-    }
-    refreshMapHulls();
-  }
-
-  // Rebuild the map's segment highlights for the current `mapWindow`: for every
-  // selection, take its sub-groups at that window and emit one highlight group
-  // per sub-group. The group color mirrors the USER'S PAINT (manual palette or
-  // the Highlight-cohort menu), NOT an automatic cohort palette: if any of the
-  // sub-group's sections have been painted, the group takes that paint hex (a
-  // cohort painted together shares one color, so the first painted section's hex
-  // represents the group); sub-groups with no painted section fall back to the
-  // neutral UNAFF_GRAY. Because painted sections are also drawn on the map's
-  // paint layer in the same hex, the hull layer and paint layer agree in color
-  // (no conflict / no differently-colored duplicate). The automatic CATEGORICAL
-  // cohort palette is intentionally not used here.
-  function refreshMapHulls() {
-    if (!(window.StorylineMap && window.StorylineMap.showHulls)) return;
-    const hullGroups = [];
+  // Collect the member ids across all current selections (deduped, order kept).
+  function selectedIds() {
+    const seen = new Set();
+    const out = [];
     for (const sel of mapSelections) {
-      const subGroups = sel.timelineByWindow.get(mapWindow) || [];
-      for (const sg of subGroups) {
-        const sectionIds = sg.sectionIds;
-        if (!(sectionIds && sectionIds.length)) continue;
-        let color = UNAFF_GRAY; // uncolored cohort: neutral hue
-        for (const id of sectionIds) {
-          const hex = state.paint.get(id);
-          if (hex) { color = hex; break; } // painted cohort: use the paint color
-        }
-        hullGroups.push({ sectionIds, color });
+      for (const id of sel.ids) {
+        if (!seen.has(id)) { seen.add(id); out.push(id); }
       }
     }
-    window.StorylineMap.showHulls(hullGroups);
+    return out;
   }
 
-  // --- Bridge globals for the time slider in storyline_geo.html ------------
+  // Rebuild the map's selected-segment rendering for the current mapYear: for
+  // every selected id surveyed in that year, color it by its PMIS category and
+  // draw its real polyline. Unsurveyed-that-year segments are omitted.
+  function refreshMapSelected() {
+    if (!(window.StorylineMap && window.StorylineMap.showSelectedByCondition)) return;
+    if (mapYear === null) { window.StorylineMap.clearSelected(); return; }
+    const idToColor = new Map();
+    for (const id of selectedIds()) {
+      const inner = condByYear.get(id);
+      if (!inner) continue;
+      const score = inner.get(mapYear);
+      if (score === null || score === undefined) continue; // not surveyed this year
+      idToColor.set(id, pmisCategoryColor(score));
+    }
+    window.StorylineMap.showSelectedByCondition(idToColor);
+  }
+
+  // Selection-commit path used by the EvoLens brush bridge: appends the member
+  // ids as a selection and re-renders for the current year. `kWindow` (optional)
+  // is the WINDOW index where the brush began (indexes state.data.windows); we
+  // translate its start year into the map year so the slider jumps to where the
+  // brush started, clamped to the observed year range.
+  function commitMapSelection(memberIds, kWindow) {
+    if (!memberIds.length) return;
+    mapSelections.push({ ids: memberIds });
+    if (kWindow != null && yearMin !== null) {
+      const win = state.data && state.data.windows && state.data.windows[kWindow | 0];
+      const startYear = win && win.start != null ? win.start : yearMin;
+      mapYear = Math.max(yearMin, Math.min(yearMax, startYear));
+      if (typeof window.__onMapWindowChange === "function") {
+        window.__onMapWindowChange(mapYear - yearMin); // slider index for the year
+      }
+    }
+    refreshMapSelected();
+  }
+
+  // --- Bridge globals for the map's year slider ----------------------------
+  //
+  // These keep the SAME names the map HTML slider blocks already call, but the
+  // semantics are now YEAR-based: the slider index k is a year offset from
+  // yearMin, so the range input becomes a per-year slider (step 1) whose label
+  // shows the year. __getNumWindows returns the number of years so the HTML's
+  // syncRange() sets slider.max = yearSpan - 1.
   window.__setMapWindow = function (k) {
-    if (!state.numWindows) return;
-    k = Math.max(0, Math.min(state.numWindows - 1, k | 0));
-    mapWindow = k;
-    refreshMapHulls();
+    if (yearMin === null) return;
+    mapYear = yearForIndex(k);
+    refreshMapSelected();
   };
-  window.__getMapWindow = function () { return mapWindow; };
-  window.__getNumWindows = function () { return state.numWindows || 0; };
+  window.__getMapWindow = function () {
+    if (mapYear === null || yearMin === null) return 0;
+    return mapYear - yearMin;
+  };
+  window.__getNumWindows = function () { return yearSpan(); };
   window.__getWindowLabel = function (k) {
-    const w = state.data && state.data.windows && state.data.windows[k];
-    if (!w) return "";
-    if (w.label) return w.label;
-    if (w.start != null && w.end != null) return w.start + "–" + w.end;
-    return String(k);
+    const y = yearForIndex(k);
+    return y === null ? "" : String(y);
   };
-  // Add a cohort-spread selection from EvoLens brushed segments. `groups` is
+  // Add a selection from EvoLens brushed segments. `groups` is
   // [{ roadIdx, segIdxList:[segIdx...] }, ...] (the brushed segments per road).
-  // Flattens into memberSegs and reuses the same timeline/commit logic as the
-  // click-to-pick path so the window slider spreads the brushed cohorts over
-  // time. No-op unless the map module is present. `kStart` (optional) jumps the
-  // current window to where the brush began.
+  // Flattens into member ids and reuses commitMapSelection. No-op unless the
+  // map module is present. `kStart` (optional) jumps the slider to that year
+  // index (kept for call-site compatibility with the old window index).
   window.__addMapSelectionFromGroups = function (groups, kStart) {
-    if (!(window.StorylineMap && window.StorylineMap.showHulls)) return;
+    if (!(window.StorylineMap && window.StorylineMap.showSelectedByCondition)) return;
     if (!Array.isArray(groups) || !groups.length) return;
-    const memberSegs = [];
+    const memberIds = [];
+    const seen = new Set();
     for (const group of groups) {
       const roadIdx = group.roadIdx;
       const road = state.data.roads[roadIdx];
@@ -1906,18 +1966,23 @@
       for (const segIdx of group.segIdxList || []) {
         const seg = road.segments[segIdx];
         const id = seg && seg.id;
-        if (id != null) memberSegs.push({ roadIdx, segIdx, id: String(id) });
+        if (id != null) {
+          const sid = String(id);
+          if (!seen.has(sid)) { seen.add(sid); memberIds.push(sid); }
+        }
       }
     }
-    if (!memberSegs.length) return;
-    commitMapSelection(memberSegs, kStart);
+    // Default the slider/year to yearMin the first time a selection lands, so
+    // something renders even before the user moves the slider.
+    if (mapYear === null && yearMin !== null) mapYear = yearMin;
+    commitMapSelection(memberIds, kStart);
   };
 
-  // Empty all cohort-spread selections and clear the blobs (Clear colors).
+  // Empty all selections and clear the map's selected-segment graphics.
   window.__clearMapSelections = function () {
     mapSelections.length = 0;
-    if (window.StorylineMap && window.StorylineMap.clearHulls) {
-      window.StorylineMap.clearHulls();
+    if (window.StorylineMap && window.StorylineMap.clearSelected) {
+      window.StorylineMap.clearSelected();
     }
   };
 

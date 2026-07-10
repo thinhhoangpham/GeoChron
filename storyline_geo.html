@@ -170,7 +170,7 @@
     // in storyline.js has window.StorylineMap available. init() is deferred
     // until the panel is first opened to avoid loading ArcGIS + the ~6.5MB
     // geojson when the user never opens the map.
-    for (const s of ["storyline_align.js", "storyline.js", "heatmap.js", "evolens.js", "storyline_map.js"]) {
+    for (const s of ["storyline_align.js", "storyline_core.js", "heatmap.js", "evolens.js", "storyline_map.js"]) {
       const el = document.createElement("script");
       el.src = s + "?t=" + Date.now();
       el.async = false; // async=false => dynamically-inserted scripts still execute in insertion order

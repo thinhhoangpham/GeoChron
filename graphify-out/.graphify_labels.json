@@ -1,7 +1,6 @@
 {
   "0": "Storyline Renderer (storyline.js)",
   "1": "Session Tracking & Storyline Emit (Steps 12-17)",
-  "2": "Graphify Skill & Extraction Spec",
   "3": "Domain Concepts & GeoChron Paper",
   "4": "Relation Network & Community Mining (Steps 6-11)",
   "5": "Cluster Viewer (clusters.js)",
@@ -66,7 +65,6 @@
   "64": "step17_all_storyline.py",
   "65": "step4_windows.py",
   "66": "normalize",
-  "67": "step6_corr.py",
   "68": "graphify reference: add a URL and watch a folder",
   "69": "graphify reference: commit hook and native CLAUDE.md integration",
   "70": "graphify reference: incremental update and cluster-only",
@@ -175,5 +173,14 @@
   "173": "step17_storyline_peryear_dist.py",
   "174": "step6_corr_geo.py",
   "175": "build_windows_geo.py",
-  "176": "step10_communities_dist.py"
+  "176": "step10_communities_dist.py",
+  "177": "storyline_core.js",
+  "178": "Map: year-slider condition-colored selected segments",
+  "179": "build_hmc_flatten_center_figs.py",
+  "180": "step10_communities_geo.py",
+  "181": "step17_storyline_geo.py",
+  "182": "analyze_cohort_cohesion.py",
+  "183": "step17_storyline_peryear_geo.py",
+  "184": "step8_network_geo.py",
+  "185": "cohort_presets_dist.js"
 }
