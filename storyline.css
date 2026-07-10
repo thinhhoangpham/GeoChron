@@ -274,6 +274,22 @@ html, body {
 }
 .evolens-selection-overlay.hidden { display: none; }
 
+/* Resize handles on the committed selection box (8 anchor points). Children
+   re-enable pointer events even though the overlay itself ignores them. */
+.evolens-selection-handle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  margin-top: -4.5px;
+  background: #2d5f8a;
+  border: 1px solid #ffffff;
+  box-sizing: border-box;
+  pointer-events: auto;
+  user-select: none;
+  z-index: 21;
+}
+
 /* Slide-in side panel (non-blocking: Storyline stays visible/usable) */
 .evolens-panel {
   position: fixed;
@@ -335,6 +351,62 @@ html, body {
   margin-bottom: 8px;
   cursor: pointer;
 }
+
+/* Coherence filter control: sits under the motif toggle in the panel header. */
+.evolens-coherence {
+  margin-bottom: 10px;
+}
+.evolens-coherence.hidden { display: none; }
+
+.evolens-coherence-label {
+  display: block;
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.evolens-coherence-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.evolens-coherence-row input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.evolens-coherence-readout {
+  font-size: 11px;
+  color: #777;
+  white-space: nowrap;
+}
+
+.evolens-coherence-btn {
+  font-size: 11px;
+  color: #444;
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.evolens-coherence-btn:hover:not(:disabled) {
+  background: #e9e9e9;
+  color: #222;
+}
+.evolens-coherence-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Dims a segment's heatmap cells during coherence-filter preview. */
+.evolens-row-dimmed { opacity: 0.25; }
+
+/* Hides a below-threshold segment's raw line during coherence-filter preview
+   (hidden, not removed, so raising the threshold restores it). */
+.evolens-line-hidden { display: none; }
 
 .evolens-chart-wrap {
   width: 100%;

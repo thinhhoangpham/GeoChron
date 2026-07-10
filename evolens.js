@@ -80,6 +80,14 @@
         <input type="checkbox" id="evolensMotifToggle" checked>
         <span>Show trend motif</span>
       </label>
+      <div class="evolens-coherence hidden" id="evolensCoherence">
+        <label class="evolens-coherence-label" for="evolensCoherenceSlider">Min coherence to cohort</label>
+        <div class="evolens-coherence-row">
+          <input type="range" id="evolensCoherenceSlider" min="-1" max="1" step="0.05" value="-1">
+          <span class="evolens-coherence-readout" id="evolensCoherenceReadout"></span>
+          <button id="evolensCoherenceBtn" class="evolens-coherence-btn" disabled>Remove 0 segments</button>
+        </div>
+      </div>
       <div id="evolensChartWrap" class="evolens-chart-wrap"></div>
     `;
     document.body.appendChild(panel);
@@ -95,6 +103,18 @@
     const titleEl = panel.querySelector("#evolensTitle");
     const subtitleEl = panel.querySelector("#evolensSubtitle");
     const chartWrapEl = panel.querySelector("#evolensChartWrap");
+
+    // Coherence filter (segment mode only): dims/removes painted segments that
+    // poorly follow the cohort's shared trend. Hidden in unit mode entirely.
+    const coherenceWrap = panel.querySelector("#evolensCoherence");
+    const coherenceSlider = panel.querySelector("#evolensCoherenceSlider");
+    const coherenceReadout = panel.querySelector("#evolensCoherenceReadout");
+    const coherenceBtn = panel.querySelector("#evolensCoherenceBtn");
+    // Per-render descriptor for the coherence filter, rebuilt each renderChart:
+    // { evData, groups, yearStart, yearEnd, focusStart, focusEnd,
+    //   segs: [{ id, coh, rects: [SVGRect] }] }.
+    let coherenceState = null;
+    if (UNIT_MODE) coherenceWrap.classList.add("hidden");
 
     let evolensData = null; // { years, scores } lazily fetched
     let evolensFetchPromise = null;
@@ -259,6 +279,65 @@
     }
 
     // ------------------------------------------------------------------
+    // Resize handles on the committed selection box. 4 corners + 4 edge
+    // midpoints; anchored (via CSS %) as children of selectionEl so they
+    // move for free on scroll/resize. Dragging updates activeSelection live
+    // and re-runs the drill-down once on release.
+    // ------------------------------------------------------------------
+    // ax/ay in {0, 0.5, 1}: anchor position along width/height. edgeX/edgeY
+    // name which world edge that axis moves ("x0"/"x1"/null, "y0"/"y1"/null).
+    const HANDLE_SPECS = [
+      { ax: 0,   ay: 0,   edgeX: "x0", edgeY: "y0", cursor: "nwse-resize" },
+      { ax: 0.5, ay: 0,   edgeX: null, edgeY: "y0", cursor: "ns-resize"   },
+      { ax: 1,   ay: 0,   edgeX: "x1", edgeY: "y0", cursor: "nesw-resize" },
+      { ax: 1,   ay: 0.5, edgeX: "x1", edgeY: null, cursor: "ew-resize"   },
+      { ax: 1,   ay: 1,   edgeX: "x1", edgeY: "y1", cursor: "nwse-resize" },
+      { ax: 0.5, ay: 1,   edgeX: null, edgeY: "y1", cursor: "ns-resize"   },
+      { ax: 0,   ay: 1,   edgeX: "x0", edgeY: "y1", cursor: "nesw-resize" },
+      { ax: 0,   ay: 0.5, edgeX: "x0", edgeY: null, cursor: "ew-resize"   },
+    ];
+
+    let resizeSpec = null; // active handle spec while dragging, else null
+
+    for (const spec of HANDLE_SPECS) {
+      const handle = document.createElement("div");
+      handle.className = "evolens-selection-handle";
+      handle.style.left = (spec.ax * 100) + "%";
+      handle.style.top = (spec.ay * 100) + "%";
+      handle.style.cursor = spec.cursor;
+      handle.addEventListener("mousedown", (evt) => {
+        if (evt.button !== 0 || !activeSelection) return;
+        // Do not let this start a fresh canvas brush.
+        evt.preventDefault();
+        evt.stopPropagation();
+        resizeSpec = spec;
+      });
+      selectionEl.appendChild(handle);
+    }
+
+    window.addEventListener("mousemove", (evt) => {
+      if (!resizeSpec || !activeSelection) return;
+      const world = clientToWorld(evt.clientX, evt.clientY);
+      if (resizeSpec.edgeX) activeSelection[resizeSpec.edgeX] = world.x;
+      if (resizeSpec.edgeY) activeSelection[resizeSpec.edgeY] = world.y;
+      syncSelectionOverlay();
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (!resizeSpec) return;
+      resizeSpec = null;
+      if (!activeSelection) return;
+      // Normalize (x0<x1, y0<y1) and clamp to a small minimum so a collapsed
+      // box never fires an empty selection.
+      let { x0, y0, x1, y1 } = activeSelection;
+      if (x0 > x1) [x0, x1] = [x1, x0];
+      if (y0 > y1) [y0, y1] = [y1, y0];
+      if (x1 - x0 < DRAG_THRESHOLD_PX) x1 = x0 + DRAG_THRESHOLD_PX;
+      if (y1 - y0 < DRAG_THRESHOLD_PX) y1 = y0 + DRAG_THRESHOLD_PX;
+      handleBrushEnd({ x0, y0, x1, y1 });
+    });
+
+    // ------------------------------------------------------------------
     // Brush -> window range -> segment selection
     // ------------------------------------------------------------------
     function handleBrushEnd(worldRect) {
@@ -368,6 +447,8 @@
       panel.classList.remove("open");
       activeSelection = null;
       selectionEl.classList.add("hidden");
+      coherenceState = null;
+      coherenceWrap.classList.add("hidden");
     }
     closeBtn.addEventListener("click", closePanel);
 
@@ -468,6 +549,8 @@
     }
 
     function renderUnitChart(unitData, unitKeys, yearStart, yearEnd, focusStart, focusEnd) {
+      coherenceWrap.classList.add("hidden"); // control is segment-mode only
+      coherenceState = null;
       chartWrapEl.innerHTML = "";
       const years = unitData.years.filter((y) => y >= yearStart && y <= yearEnd);
       if (years.length === 0) {
@@ -589,8 +672,175 @@
       }
 
       const motif = computeMotif(allSeries);
-      drawSvgChart(years, allSeries, motif, makeFocusBand(focusStart, focusEnd));
+      const chart = drawSvgChart(years, allSeries, motif, makeFocusBand(focusStart, focusEnd));
+
+      setupCoherenceFilter(evData, groups, years, allSeries, motif, chart,
+        yearStart, yearEnd, focusStart, focusEnd, filterColored);
     }
+
+    // ------------------------------------------------------------------
+    // Coherence filter: correlate each shown segment to the cohort MEDOID (the
+    // most-central segment under pairwise correlation) over the focus window,
+    // then let the user dim/remove the segments that follow the shared trend
+    // least. Segment mode only, and only when a painted cohort is actually shown
+    // (filterColored). The displayed trend motif still uses the median band
+    // (computeMotif); only this coherence metric uses the medoid.
+    // ------------------------------------------------------------------
+    function setupCoherenceFilter(evData, groups, years, allSeries, motif, chart,
+                                  yearStart, yearEnd, focusStart, focusEnd, filterColored) {
+      if (UNIT_MODE || !filterColored || allSeries.length === 0) {
+        coherenceState = null;
+        coherenceWrap.classList.add("hidden");
+        return;
+      }
+
+      // Focus-window year indices into `years` (same length/order as motif).
+      const focusIdx = [];
+      for (let i = 0; i < years.length; i++) {
+        if (years[i] >= focusStart && years[i] <= focusEnd) focusIdx.push(i);
+      }
+
+      // Focus-window Pearson correlation between two per-year value arrays,
+      // using only indices where BOTH are non-null. -Infinity for <3 overlapping
+      // points / zero variance (via the shared pearson helper).
+      function corrFocus(av, bv) {
+        const xs = [], ys = [];
+        for (const i of focusIdx) {
+          const a = av[i], b = bv[i];
+          if (a == null || b == null) continue; // need both non-null
+          xs.push(a); ys.push(b);
+        }
+        return pearson(xs, ys);
+      }
+
+      // Medoid = segment with the highest MEAN pairwise correlation to the other
+      // shown segments (argmax_i avg_{j != i} r(i,j)). Build the symmetric
+      // pairwise matrix once (O(n^2), r(i,j)=r(j,i)); undefined/-Infinity pairs
+      // count as 0 in the mean so an incomparable segment neither inflates nor
+      // -Inf-poisons a candidate's centrality.
+      const n = allSeries.length;
+      let medoidValues = allSeries[0].values;
+      if (n >= 2) {
+        const R = Array.from({ length: n }, () => new Float64Array(n));
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            let r = corrFocus(allSeries[i].values, allSeries[j].values);
+            if (!isFinite(r)) r = 0; // treat incomparable pairs as 0 when averaging
+            R[i][j] = r; R[j][i] = r;
+          }
+        }
+        let bestIdx = 0, bestMean = -Infinity;
+        for (let i = 0; i < n; i++) {
+          let sum = 0;
+          for (let j = 0; j < n; j++) if (j !== i) sum += R[i][j];
+          const mean = sum / (n - 1);
+          if (mean > bestMean) { bestMean = mean; bestIdx = i; }
+        }
+        medoidValues = allSeries[bestIdx].values;
+      }
+
+      // Each segment's coherence = its focus-window correlation to the medoid.
+      // The medoid self-correlates to 1; segments with <3 overlapping focus
+      // points vs the medoid stay -Infinity (always eligible for removal).
+      function coherenceOf(values) {
+        return corrFocus(values, medoidValues);
+      }
+
+      // Map each shown segment id to its rendered heatmap rects (tagged above).
+      const rectsById = new Map();
+      chartWrapEl.querySelectorAll("[data-seg-id]").forEach((r) => {
+        const id = r.getAttribute("data-seg-id");
+        let arr = rectsById.get(id);
+        if (!arr) { arr = []; rectsById.set(id, arr); }
+        arr.push(r);
+      });
+
+      const segs = allSeries.map((s) => {
+        const id = String(s.id);
+        return { id, coh: coherenceOf(s.values), rects: rectsById.get(id) || [] };
+      });
+
+      // Stash the full (unmutated) series + chart handle so each preview pass
+      // recomputes the motif from scratch over the surviving subset -- keeping
+      // the preview non-destructive when the threshold slides back up.
+      coherenceState = {
+        evData, groups, yearStart, yearEnd, focusStart, focusEnd,
+        segs, allSeries, chart,
+      };
+
+      coherenceSlider.value = "-1"; // reset to "nothing filtered" on each render
+      coherenceWrap.classList.remove("hidden");
+      updateCoherencePreview();
+    }
+
+    // Recompute below-threshold segments, dim their rows, update the readout and
+    // the button. View-only preview -- does not touch paint or re-render.
+    function updateCoherencePreview() {
+      if (!coherenceState) return;
+      const t = parseFloat(coherenceSlider.value);
+      const chart = coherenceState.chart;
+      let below = 0;
+      const visibleSeries = [];
+      coherenceState.segs.forEach((s, i) => {
+        const dim = s.coh < t;
+        if (dim) below++; else visibleSeries.push(coherenceState.allSeries[i]);
+        // Dim the segment's heatmap cells...
+        for (const r of s.rects) r.classList.toggle("evolens-row-dimmed", dim);
+        // ...and hide (not delete) its raw line so raising the threshold restores it.
+        if (chart && chart.rawLines[i]) {
+          chart.rawLines[i].classList.toggle("evolens-line-hidden", dim);
+        }
+      });
+
+      // Live-recompute the trend motif from ONLY the surviving series, reusing
+      // the original generators + fixed yMotif scale (via the stashed d/paths).
+      // Correct even while the motif toggle is off, so it looks right when shown.
+      if (chart) {
+        const m = computeMotif(visibleSeries);
+        const pts = chart.years.map((yr, yi) => ({
+          year: yr,
+          p25: m.length ? m[yi].p25 : null,
+          p50: m.length ? m[yi].p50 : null,
+          p75: m.length ? m[yi].p75 : null,
+        }));
+        chart.bandPath.datum(pts).attr("d", chart.areaGen);
+        chart.medianPath.datum(pts).attr("d", chart.medianLineGen);
+      }
+
+      const total = coherenceState.segs.length;
+      coherenceReadout.textContent = `${below} of ${total} below ${t.toFixed(2)}`;
+      coherenceBtn.disabled = below === 0;
+      coherenceBtn.textContent = `Remove ${below} segment${below === 1 ? "" : "s"}`;
+    }
+
+    // Persistently drop the below-threshold segments from the cohort (paint +
+    // map), then re-render the drill-down for whatever painted segments survive.
+    function commitCoherenceFilter() {
+      if (!coherenceState) return;
+      const t = parseFloat(coherenceSlider.value);
+      const ids = coherenceState.segs.filter((s) => s.coh < t).map((s) => s.id);
+      if (ids.length === 0) return;
+
+      if (window.__storyline && window.__storyline.unpaintSegments) {
+        window.__storyline.unpaintSegments(ids);
+      }
+
+      // Re-render from the reduced state.paint. If no painted segment survives
+      // among the brushed groups, blank the panel rather than falling back to
+      // the "show everything" path.
+      const cs = coherenceState;
+      const paint = state.paint;
+      const stillColored = cs.groups.some((g) => {
+        const segs = state.data.roads[g.roadIdx].segments;
+        return g.segIdxList.some((si) => paint && paint.has(String(segs[si].id)));
+      });
+      if (!stillColored) { closePanel(); return; }
+
+      renderChart(cs.evData, cs.groups, cs.yearStart, cs.yearEnd, cs.focusStart, cs.focusEnd);
+    }
+
+    coherenceSlider.addEventListener("input", updateCoherencePreview);
+    coherenceBtn.addEventListener("click", commitCoherenceFilter);
 
     // ------------------------------------------------------------------
     // Per-road heatmap cards -- same visual language as clusters.html's
@@ -656,7 +906,34 @@
         onCellOut: hideCellTooltip,
       });
       svg.setAttribute("class", "evolens-road-heatmap");
+      tagHeatmapRows(svg, items);
       return svg;
+    }
+
+    // Tag each heatmap rect with data-seg-id so the coherence filter can dim a
+    // segment's cells by id. HeatmapUtil draws one vertical strip of year-rects
+    // per segment, all sharing the same `x` attribute (= xFrac(seg.begin),
+    // monotonic in begin). Group rects by x, sort the distinct x ascending, and
+    // zip against the segments that actually rendered (>=1 non-null value),
+    // ordered by begin -- the i-th smallest x is the i-th rendered segment.
+    function tagHeatmapRows(svg, items) {
+      const byX = new Map();
+      svg.querySelectorAll("rect").forEach((r) => {
+        const xk = r.getAttribute("x");
+        let arr = byX.get(xk);
+        if (!arr) { arr = []; byX.set(xk, arr); }
+        arr.push(r);
+      });
+      const xKeys = Array.from(byX.keys()).sort((a, b) => parseFloat(a) - parseFloat(b));
+      const rendered = items
+        .filter((it) => it.values.some((v) => v !== null))
+        .slice()
+        .sort((a, b) => a.seg.begin - b.seg.begin);
+      const n = Math.min(xKeys.length, rendered.length);
+      for (let i = 0; i < n; i++) {
+        const id = String(rendered[i].seg.id);
+        for (const r of byX.get(xKeys[i])) r.setAttribute("data-seg-id", id);
+      }
     }
 
     function percentile(sortedArr, p) {
@@ -665,6 +942,24 @@
       if (lo === hi) return sortedArr[lo];
       const frac = idx - lo;
       return sortedArr[lo] * (1 - frac) + sortedArr[hi] * frac;
+    }
+
+    // Pearson correlation of two equal-length numeric arrays. Returns
+    // -Infinity when it cannot be defined (fewer than 3 points or zero variance
+    // on either side), so such a segment always counts as poorly-following.
+    function pearson(xs, ys) {
+      const n = xs.length;
+      if (n < 3) return -Infinity;
+      let sx = 0, sy = 0;
+      for (let i = 0; i < n; i++) { sx += xs[i]; sy += ys[i]; }
+      const mx = sx / n, my = sy / n;
+      let num = 0, dx2 = 0, dy2 = 0;
+      for (let i = 0; i < n; i++) {
+        const a = xs[i] - mx, b = ys[i] - my;
+        num += a * b; dx2 += a * a; dy2 += b * b;
+      }
+      const den = Math.sqrt(dx2 * dy2);
+      return den > 0 ? num / den : -Infinity;
     }
 
     // Shaded vertical band marking the focus (middle) year(s) of the column(s)
@@ -732,17 +1027,22 @@
         .x((d) => x(d.year))
         .y((d) => yRaw(d.v));
 
+      // Keep each raw line node (aligned to `series` order) so the coherence
+      // preview can hide/show a segment's line by index without a redraw.
+      const rawLines = [];
       series.forEach((s, i) => {
         const color = CHART_COLORS[i % CHART_COLORS.length];
         const pts = years.map((yr, yi) => ({ year: yr, v: s.values[yi] }));
         // defined() breaks the path at nulls automatically (no interpolation)
-        rawG.append("path")
+        const path = rawG.append("path")
           .datum(pts)
           .attr("class", "evolens-raw-line")
+          .attr("data-seg-id", String(s.id))
           .attr("fill", "none")
           .attr("stroke", color)
           .attr("stroke-width", 1.4)
           .attr("d", lineGen);
+        rawLines.push(path.node());
       });
 
       // --- Trend motif (z-score IQR band + median), toggle-controlled -----
@@ -784,14 +1084,14 @@
 
       const motifPts = years.map((yr, yi) => ({ year: yr, p25: motif[yi].p25, p50: motif[yi].p50, p75: motif[yi].p75 }));
 
-      motifG.append("path")
+      const bandPath = motifG.append("path")
         .datum(motifPts)
         .attr("class", "evolens-motif-band")
         .attr("fill", "#4e79a7")
         .attr("fill-opacity", 0.25)
         .attr("d", areaGen);
 
-      motifG.append("path")
+      const medianPath = motifG.append("path")
         .datum(motifPts)
         .attr("class", "evolens-motif-median")
         .attr("fill", "none")
@@ -800,6 +1100,18 @@
         .attr("d", medianLineGen);
 
       applyMotifVisibility();
+
+      // Move the line/motif SVG above the heatmap cards + heading. d3 appended
+      // it last (cards were built first); reposition it to the top of the panel
+      // body so the charts read above the cards, in both segment and unit mode.
+      chartWrapEl.insertBefore(svg.node(), chartWrapEl.firstChild);
+
+      // Handle returned so the coherence preview can live-refine the chart:
+      // hide below-threshold raw lines (rawLines) and recompute the motif band +
+      // median from the surviving series, reusing these generators/scales. The
+      // motif y-scale (yMotif) domain stays fixed at the full-cohort range so
+      // the band does not jump scale while dragging.
+      return { rawLines, bandPath, medianPath, areaGen, medianLineGen, years };
     }
 
     function applyMotifVisibility() {

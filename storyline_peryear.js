@@ -65,8 +65,8 @@
     selectedRoadIdx: -1,  // -1 = all roads
     colorMode: (colorModeEl && colorModeEl.value) || "condition",
     ths: 5,               // session-filter threshold (paper §6.2); only applied when window.STORYLINE_BROWSER_FILTER
-    rowPx: 4,
-    laneGap: 48,
+    rowPx: 1,
+    laneGap: 10,
     roadGap: 28,
     colW: 62,
     colGap: 24,
@@ -514,8 +514,20 @@
   function readThr() {
     return new URLSearchParams(location.search).get("thr") === "0.8" ? "0.8" : "0.7";
   }
+  // Community-detection selector (only on pages that set window.STORYLINE_COMM_TOGGLE,
+  // i.e. pages that have BOTH _louvain and _cl datasets). Default "louvain" is the
+  // paper-faithful Louvain build; "cl" is the complete-linkage build. Read from
+  // ?comm so it survives reloads and carries across the compare-page links.
+  function readComm() {
+    return window.STORYLINE_COMM_TOGGLE &&
+      new URLSearchParams(location.search).get("comm") === "cl" ? "cl" : "louvain";
+  }
   function dataFileFor(thr) {
-    return thr === "0.8" ? BASE_DATA_FILE.replace(/\.json$/, "_thr80.json") : BASE_DATA_FILE;
+    let f = thr === "0.8" ? BASE_DATA_FILE.replace(/\.json$/, "_thr80.json") : BASE_DATA_FILE;
+    // On compare-enabled pages, always pick the explicit {base}[_thr80]_{comm}.json
+    // (never the bare name, which is kept for presets / back-compat).
+    if (window.STORYLINE_COMM_TOGGLE) f = f.replace(/\.json$/, `_${readComm()}.json`);
+    return f;
   }
 
   // no-store + a cache-busting query: this app is served by a plain
@@ -557,9 +569,14 @@
   // navigating to the sibling storyline pages. Idempotent: strips any existing
   // ?thr before (re)appending, so toggling live keeps the links in sync.
   function updateCompareLinks(thr) {
+    const comm = readComm();
     document.querySelectorAll("#toolbar a[href$='.html'], #toolbar a[href*='.html?']").forEach((a) => {
       const href = a.getAttribute("href").split("?")[0];
-      a.setAttribute("href", thr === "0.8" ? `${href}?thr=0.8` : href);
+      const params = new URLSearchParams();
+      if (thr === "0.8") params.set("thr", "0.8");
+      if (window.STORYLINE_COMM_TOGGLE && comm === "cl") params.set("comm", "cl");
+      const qs = params.toString();
+      a.setAttribute("href", qs ? `${href}?${qs}` : href);
     });
   }
 
@@ -602,7 +619,40 @@
     return thr;
   }
 
+  // Community-detection dropdown (compare Louvain vs complete-linkage). Only on
+  // pages that opt in via window.STORYLINE_COMM_TOGGLE; mirrors the threshold
+  // toggle's in-place data reload (no full page reload).
+  function setupCommToggle() {
+    if (!window.STORYLINE_COMM_TOGGLE) return;
+    const firstRow = document.querySelector("#toolbar .toolbar-row");
+    const ctl = document.createElement("label");
+    ctl.className = "ctl";
+    const label = document.createElement("span");
+    label.textContent = "Community";
+    const sel = document.createElement("select");
+    sel.id = "commMode";
+    [["louvain", "Louvain (paper)"], ["cl", "Complete-linkage"]].forEach(([v, t]) => {
+      const o = document.createElement("option");
+      o.value = v; o.textContent = t;
+      if (v === readComm()) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("change", () => {
+      const params = new URLSearchParams(location.search);
+      if (sel.value === "cl") params.set("comm", "cl");
+      else params.delete("comm");
+      const qs = params.toString();
+      history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+      updateCompareLinks(readThr());
+      loadData(dataFileFor(readThr()));
+    });
+    ctl.appendChild(label);
+    ctl.appendChild(sel);
+    firstRow.appendChild(ctl);
+  }
+
   const initialThr = setupThresholdToggle();
+  setupCommToggle();
   loadData(dataFileFor(initialThr));
 
   function countSegments(data) {
