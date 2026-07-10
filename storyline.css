@@ -290,33 +290,49 @@ html, body {
   z-index: 21;
 }
 
-/* Slide-in side panel (non-blocking: Storyline stays visible/usable) */
+/* Floating drill-down window (non-blocking: Storyline stays visible/usable).
+   Position/size are set in px via JS on open and updated live on drag/resize. */
 .evolens-panel {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 460px;
-  max-width: 92vw;
+  width: 1000px;
+  height: 700px;
   background: #ffffff;
-  border-left: 1px solid #ddd;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
   z-index: 200;
-  transform: translateX(100%);
-  transition: transform 0.22s ease-out;
-  overflow-y: auto;
-  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease-out;
 }
 
 .evolens-panel.hidden { display: none; }
-.evolens-panel.open { transform: translateX(0); }
+.evolens-panel.open { opacity: 1; visibility: visible; }
 
 .evolens-header {
+  flex: 0 0 auto;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  padding: 14px 16px 8px;
+  cursor: move;
+  user-select: none;
+}
+
+/* Bottom-right corner grip for resizing the floating window. */
+.evolens-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 0 50%, #bbb 50% 60%, transparent 60% 70%, #bbb 70% 80%, transparent 80%);
+  z-index: 2;
 }
 
 .evolens-title {
@@ -342,19 +358,10 @@ html, body {
 }
 .evolens-close:hover { color: #222; }
 
-.evolens-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #444;
-  margin-bottom: 8px;
-  cursor: pointer;
-}
-
-/* Coherence filter control: sits under the motif toggle in the panel header. */
+/* Coherence filter control: sits under the header, in the pinned top region. */
 .evolens-coherence {
-  margin-bottom: 10px;
+  flex: 0 0 auto;
+  padding: 0 16px 8px;
 }
 .evolens-coherence.hidden { display: none; }
 
@@ -408,8 +415,30 @@ html, body {
    (hidden, not removed, so raising the threshold restores it). */
 .evolens-line-hidden { display: none; }
 
-.evolens-chart-wrap {
-  width: 100%;
+/* Pinned chart row: two fixed-size charts side by side. Scrolls horizontally
+   if the pair is wider than the panel rather than shrinking the charts. */
+.evolens-chart-row {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 8px;
+  overflow-x: auto;
+}
+
+.evolens-chart {
+  flex: 0 0 auto;
+  display: block;
+}
+
+/* Scrollable heatmap body: fills the remaining panel height below the charts. */
+.evolens-chart-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 300px);
+  align-content: start;
+  gap: 10px;
 }
 
 .evolens-loading {
@@ -433,16 +462,17 @@ html, body {
   pointer-events: none;
 }
 
-.evolens-chart-wrap svg .tick text {
+.evolens-chart-row svg .tick text {
   font-size: 9.5px;
   fill: #666;
 }
-.evolens-chart-wrap svg .domain,
-.evolens-chart-wrap svg .tick line {
+.evolens-chart-row svg .domain,
+.evolens-chart-row svg .tick line {
   stroke: #ccc;
 }
 
 .evolens-heatmap-heading {
+  grid-column: 1 / -1;
   font-size: 12px;
   font-weight: 600;
   color: #444;
@@ -450,11 +480,12 @@ html, body {
 }
 
 .evolens-road-card {
+  width: 100%;
+  box-sizing: border-box;
   border: 1px solid #ddd;
   border-radius: 4px;
   background: #fff;
   padding: 6px 8px;
-  margin-bottom: 10px;
 }
 
 .evolens-road-card-title {
@@ -467,7 +498,7 @@ html, body {
 }
 
 .evolens-road-heatmap {
-  width: 100%;
+  width: 282px;
   height: 140px;
   display: block;
   shape-rendering: crispEdges;

@@ -76,10 +76,6 @@
         </div>
         <button id="evolensClose" class="evolens-close" title="Close">&times;</button>
       </div>
-      <label class="evolens-toggle">
-        <input type="checkbox" id="evolensMotifToggle" checked>
-        <span>Show trend motif</span>
-      </label>
       <div class="evolens-coherence hidden" id="evolensCoherence">
         <label class="evolens-coherence-label" for="evolensCoherenceSlider">Min coherence to cohort</label>
         <div class="evolens-coherence-row">
@@ -88,9 +84,37 @@
           <button id="evolensCoherenceBtn" class="evolens-coherence-btn" disabled>Remove 0 segments</button>
         </div>
       </div>
-      <div id="evolensChartWrap" class="evolens-chart-wrap"></div>
+      <div id="evolensChartRow" class="evolens-chart-row"></div>
+      <div id="evolensChartBody" class="evolens-chart-body"></div>
+      <div class="evolens-resize-handle" title="Resize"></div>
     `;
     document.body.appendChild(panel);
+
+    // Floating-window position/size, remembered across drill-down opens for the
+    // life of the page (module state; no persistence across reloads).
+    const PANEL_DEFAULT_W = 1000, PANEL_DEFAULT_H = 700;
+    const PANEL_MIN_W = 420, PANEL_MIN_H = 320;
+    let panelPos = null;  // { left, top } in px, once dragged
+    let panelSize = null; // { w, h } in px, once resized
+
+    function positionPanel() {
+      if (!panelSize) {
+        // Clamp the default to the viewport (minus 16px insets) so a screen
+        // smaller than 1000x700 never opens the panel partially off-screen,
+        // but never shrink below the min-size constants.
+        const maxW = Math.max(PANEL_MIN_W, window.innerWidth - 32);
+        const maxH = Math.max(PANEL_MIN_H, window.innerHeight - 32);
+        panelSize = {
+          w: Math.min(PANEL_DEFAULT_W, maxW),
+          h: Math.min(PANEL_DEFAULT_H, maxH),
+        };
+      }
+      if (!panelPos) panelPos = { left: Math.max(0, window.innerWidth - panelSize.w - 16), top: 16 };
+      panel.style.width = panelSize.w + "px";
+      panel.style.height = panelSize.h + "px";
+      panel.style.left = panelPos.left + "px";
+      panel.style.top = panelPos.top + "px";
+    }
 
     const brushHint = document.createElement("div");
     brushHint.id = "evolensHint";
@@ -99,10 +123,48 @@
     canvasWrap.appendChild(brushHint);
 
     const closeBtn = panel.querySelector("#evolensClose");
-    const motifToggle = panel.querySelector("#evolensMotifToggle");
     const titleEl = panel.querySelector("#evolensTitle");
     const subtitleEl = panel.querySelector("#evolensSubtitle");
-    const chartWrapEl = panel.querySelector("#evolensChartWrap");
+    // Pinned chart row (two side-by-side charts) + scrollable heatmap body.
+    const chartRowEl = panel.querySelector("#evolensChartRow");
+    const chartBodyEl = panel.querySelector("#evolensChartBody");
+
+    // ------------------------------------------------------------------
+    // Floating window: drag by the header, resize by the corner grip.
+    // ------------------------------------------------------------------
+    const headerEl = panel.querySelector(".evolens-header");
+    let dragOff = null; // { x, y } cursor-to-panel offset while dragging
+    headerEl.addEventListener("mousedown", (evt) => {
+      if (evt.button !== 0 || evt.target.closest(".evolens-close")) return;
+      dragOff = { x: evt.clientX - panel.offsetLeft, y: evt.clientY - panel.offsetTop };
+      evt.preventDefault();
+    });
+
+    const resizeHandle = panel.querySelector(".evolens-resize-handle");
+    let resizeOff = null; // { x, y, w, h } at resize start
+    resizeHandle.addEventListener("mousedown", (evt) => {
+      if (evt.button !== 0) return;
+      resizeOff = { x: evt.clientX, y: evt.clientY, w: panel.offsetWidth, h: panel.offsetHeight };
+      evt.preventDefault();
+      evt.stopPropagation();
+    });
+
+    window.addEventListener("mousemove", (evt) => {
+      if (dragOff) {
+        let left = Math.max(0, Math.min(window.innerWidth - 60, evt.clientX - dragOff.x));
+        let top = Math.max(0, Math.min(window.innerHeight - 40, evt.clientY - dragOff.y));
+        panel.style.left = left + "px";
+        panel.style.top = top + "px";
+        panelPos = { left, top };
+      } else if (resizeOff) {
+        const w = Math.max(PANEL_MIN_W, resizeOff.w + (evt.clientX - resizeOff.x));
+        const h = Math.max(PANEL_MIN_H, resizeOff.h + (evt.clientY - resizeOff.y));
+        panel.style.width = w + "px";
+        panel.style.height = h + "px";
+        panelSize = { w, h };
+      }
+    });
+    window.addEventListener("mouseup", () => { dragOff = null; resizeOff = null; });
 
     // Coherence filter (segment mode only): dims/removes painted segments that
     // poorly follow the cohort's shared trend. Hidden in unit mode entirely.
@@ -114,6 +176,12 @@
     // { evData, groups, yearStart, yearEnd, focusStart, focusEnd,
     //   segs: [{ id, coh, rects: [SVGRect] }] }.
     let coherenceState = null;
+    // Segment ids removed via the coherence filter during the CURRENT drill-down
+    // session. Reset on each new segment-mode brush (openPanel), NOT on re-render,
+    // so exclusions accumulate across successive "Remove segments" clicks. This is
+    // the only removal mechanism in fallback mode (no paint state to persist
+    // against); in painted-cohort mode it works alongside unpaintSegments.
+    let excludedSegIds = new Set();
     if (UNIT_MODE) coherenceWrap.classList.add("hidden");
 
     let evolensData = null; // { years, scores } lazily fetched
@@ -468,6 +536,7 @@
     }
 
     function openPanel(groups, yearStart, yearEnd, focusStart, focusEnd) {
+      excludedSegIds = new Set(); // fresh brush -> clear prior session's exclusions
       const totalSegs = groups.reduce((a, g) => a + g.segIdxList.length, 0);
       // Title counts DISTINCT highways (roadbeds), matching the in-card heading
       // and the number of cards renderChart emits. A single highway reads as its
@@ -479,14 +548,16 @@
       subtitleEl.textContent =
         `${totalSegs} segment${totalSegs === 1 ? "" : "s"} selected  |  ` +
         rangeLabel(yearStart, yearEnd, focusStart, focusEnd);
+      positionPanel();
       panel.classList.add("open");
       panel.classList.remove("hidden");
 
-      chartWrapEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
+      chartRowEl.innerHTML = "";
+      chartBodyEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
       ensureEvolensData().then((d) => {
         renderChart(d, groups, yearStart, yearEnd, focusStart, focusEnd);
       }).catch((err) => {
-        chartWrapEl.innerHTML = `<div class="evolens-loading">Failed to load evolens_data.json: ${err.message}</div>`;
+        chartBodyEl.innerHTML = `<div class="evolens-loading">Failed to load evolens_data.json: ${err.message}</div>`;
         console.error(err);
       });
     }
@@ -496,14 +567,16 @@
       subtitleEl.textContent =
         `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected  |  ` +
         rangeLabel(yearStart, yearEnd, focusStart, focusEnd);
+      positionPanel();
       panel.classList.add("open");
       panel.classList.remove("hidden");
 
-      chartWrapEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
+      chartRowEl.innerHTML = "";
+      chartBodyEl.innerHTML = `<div class="evolens-loading">Loading...</div>`;
       ensureUnitSegments().then((d) => {
         renderUnitChart(d, unitKeys, yearStart, yearEnd, focusStart, focusEnd);
       }).catch((err) => {
-        chartWrapEl.innerHTML = `<div class="evolens-loading">Failed to load unit_segments_full.json: ${err.message}</div>`;
+        chartBodyEl.innerHTML = `<div class="evolens-loading">Failed to load unit_segments_full.json: ${err.message}</div>`;
         console.error(err);
       });
     }
@@ -551,10 +624,11 @@
     function renderUnitChart(unitData, unitKeys, yearStart, yearEnd, focusStart, focusEnd) {
       coherenceWrap.classList.add("hidden"); // control is segment-mode only
       coherenceState = null;
-      chartWrapEl.innerHTML = "";
+      chartRowEl.innerHTML = "";
+      chartBodyEl.innerHTML = "";
       const years = unitData.years.filter((y) => y >= yearStart && y <= yearEnd);
       if (years.length === 0) {
-        chartWrapEl.innerHTML = `<div class="evolens-loading">No year data in range.</div>`;
+        chartBodyEl.innerHTML = `<div class="evolens-loading">No year data in range.</div>`;
         return;
       }
       const yearIdx0 = unitData.years.indexOf(years[0]);
@@ -562,7 +636,7 @@
       const heading = document.createElement("div");
       heading.className = "evolens-heatmap-heading";
       heading.textContent = `${unitKeys.length} unit${unitKeys.length === 1 ? "" : "s"} selected`;
-      chartWrapEl.appendChild(heading);
+      chartBodyEl.appendChild(heading);
 
       const allSeries = [];
       for (const unitKey of unitKeys) {
@@ -577,7 +651,7 @@
             values: years.map((_, i) => (seg.scores[yearIdx0 + i] ?? null)),
           }));
 
-        chartWrapEl.appendChild(buildRoadCard(unitKey, items, years));
+        chartBodyEl.appendChild(buildRoadCard(unitKey, items, years));
 
         for (const it of items) {
           allSeries.push({ id: it.seg.id, values: it.values });
@@ -589,10 +663,11 @@
     }
 
     function renderChart(evData, groups, yearStart, yearEnd, focusStart, focusEnd) {
-      chartWrapEl.innerHTML = "";
+      chartRowEl.innerHTML = "";
+      chartBodyEl.innerHTML = "";
       const years = evData.years.filter((y) => y >= yearStart && y <= yearEnd);
       if (years.length === 0) {
-        chartWrapEl.innerHTML = `<div class="evolens-loading">No year data in range.</div>`;
+        chartBodyEl.innerHTML = `<div class="evolens-loading">No year data in range.</div>`;
         return;
       }
       const yearIdx0 = evData.years.indexOf(years[0]);
@@ -629,6 +704,7 @@
         for (const segIdx of group.segIdxList) {
           const seg = road.segments[segIdx];
           if (filterColored && !isColored(seg)) continue; // colored cohorts only
+          if (excludedSegIds.has(String(seg.id))) continue; // removed via coherence filter this session
           const raw = evData.scores[seg.id];
           const values = years.map((_, i) => {
             const v = raw ? raw[yearIdx0 + i] : null;
@@ -662,10 +738,10 @@
       heading.textContent =
         `Selected segments by highway + county (${cards.length} card${cards.length === 1 ? "" : "s"}, ${totalSegs} segments)` +
         (filterColored ? " (colored cohorts only)" : "");
-      chartWrapEl.appendChild(heading);
+      chartBodyEl.appendChild(heading);
 
       for (const card of cards) {
-        chartWrapEl.appendChild(buildRoadCard(card.label, card.items, years));
+        chartBodyEl.appendChild(buildRoadCard(card.label, card.items, years));
         for (const it of card.items) {
           allSeries.push({ id: it.seg.id, values: it.values });
         }
@@ -748,7 +824,7 @@
 
       // Map each shown segment id to its rendered heatmap rects (tagged above).
       const rectsById = new Map();
-      chartWrapEl.querySelectorAll("[data-seg-id]").forEach((r) => {
+      chartBodyEl.querySelectorAll("[data-seg-id]").forEach((r) => {
         const id = r.getAttribute("data-seg-id");
         let arr = rectsById.get(id);
         if (!arr) { arr = []; rectsById.set(id, arr); }
@@ -765,7 +841,7 @@
       // the preview non-destructive when the threshold slides back up.
       coherenceState = {
         evData, groups, yearStart, yearEnd, focusStart, focusEnd,
-        segs, allSeries, chart,
+        segs, allSeries, chart, filterColored,
       };
 
       coherenceSlider.value = "-1"; // reset to "nothing filtered" on each render
@@ -821,21 +897,38 @@
       const ids = coherenceState.segs.filter((s) => s.coh < t).map((s) => s.id);
       if (ids.length === 0) return;
 
+      // Painted-cohort mode: drop the ids from the paint palette + map. No-op in
+      // fallback mode (these ids were never in state.paint), which is harmless.
       if (window.__storyline && window.__storyline.unpaintSegments) {
         window.__storyline.unpaintSegments(ids);
       }
 
-      // Re-render from the reduced state.paint. If no painted segment survives
-      // among the brushed groups, blank the panel rather than falling back to
-      // the "show everything" path.
-      const cs = coherenceState;
-      const paint = state.paint;
-      const stillColored = cs.groups.some((g) => {
-        const segs = state.data.roads[g.roadIdx].segments;
-        return g.segIdxList.some((si) => paint && paint.has(String(segs[si].id)));
-      });
-      if (!stillColored) { closePanel(); return; }
+      // Also record the removal in the session exclusion set so renderChart drops
+      // these segments regardless of paint state. This is what makes "Remove
+      // segments" work in fallback mode (no paint to persist against), and it is
+      // consistent with — not a replacement for — the paint-based filtering.
+      for (const id of ids) excludedSegIds.add(id);
 
+      const cs = coherenceState;
+
+      // Painted-cohort mode (unchanged behavior): the panel shows a painted
+      // cohort. If, after unpainting, no painted segment survives among the
+      // brushed groups, close the panel rather than falling back to the
+      // "show everything" path -- this is the pre-existing, correct behavior.
+      if (cs.filterColored) {
+        const paint = state.paint;
+        const stillColored = cs.groups.some((g) => {
+          const segs = state.data.roads[g.roadIdx].segments;
+          return g.segIdxList.some((si) => paint && paint.has(String(segs[si].id)));
+        });
+        if (!stillColored) { closePanel(); return; }
+      }
+
+      // Re-render. renderChart applies BOTH the paint filter (filterColored) and
+      // the exclusion set, so it shows exactly the surviving segments and keeps
+      // the panel open. In fallback mode (no paint) this removes the
+      // below-threshold segments and keeps the panel open on the remainder; it
+      // renders a "0 segments" heading (no auto-close) only if nothing remains.
       renderChart(cs.evData, cs.groups, cs.yearStart, cs.yearEnd, cs.focusStart, cs.focusEnd);
     }
 
@@ -982,38 +1075,44 @@
         .attr("height", height);
     }
 
+    // Two separate fixed-size charts placed side by side in the pinned chart
+    // row: the raw segments line chart (left) and the trend motif chart (right).
+    // Each is a fixed CHART_W x CHART_H so they never stretch when the panel
+    // resizes; if the pair overflows the panel width, the chart row scrolls
+    // horizontally (see .evolens-chart-row in storyline.css).
+    const CHART_W = 420, CHART_H = 240;
+    const CHART_MARGIN = { top: 16, right: 16, bottom: 26, left: 36 };
+
     function drawSvgChart(years, series, motif, focusBand) {
-      const width = chartWrapEl.clientWidth || 420;
-      const rawHeight = 220;
-      const motifHeight = 140;
-      const margin = { top: 16, right: 16, bottom: 26, left: 36 };
-
-      const svg = d3.select(chartWrapEl)
-        .append("svg")
-        .attr("width", width)
-        .attr("height", rawHeight + motifHeight + margin.top + margin.bottom * 2 + 24);
-
-      const innerW = width - margin.left - margin.right;
+      const margin = CHART_MARGIN;
+      const innerW = CHART_W - margin.left - margin.right;
+      const innerH = CHART_H - margin.top - margin.bottom;
 
       const x = d3.scaleLinear()
         .domain([years[0], years[years.length - 1]])
         .range([0, innerW]);
 
-      // --- Raw line chart -------------------------------------------------
-      const rawG = svg.append("g")
+      // --- Raw line chart (left) ------------------------------------------
+      const rawSvg = d3.select(chartRowEl)
+        .append("svg")
+        .attr("class", "evolens-chart")
+        .attr("width", CHART_W)
+        .attr("height", CHART_H);
+
+      const rawG = rawSvg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
       // Focus band first so it renders behind axes + series lines.
-      if (focusBand) drawFocusBand(rawG, x, rawHeight, focusBand, years);
+      if (focusBand) drawFocusBand(rawG, x, innerH, focusBand, years);
 
       let allVals = [];
       for (const s of series) for (const v of s.values) if (v !== null) allVals.push(v);
       const yRawDomain = allVals.length ? [Math.min(0, d3.min(allVals)), Math.max(100, d3.max(allVals))] : [0, 100];
-      const yRaw = d3.scaleLinear().domain(yRawDomain).range([rawHeight, 0]).nice();
+      const yRaw = d3.scaleLinear().domain(yRawDomain).range([innerH, 0]).nice();
 
       rawG.append("g").call(d3.axisLeft(yRaw).ticks(5));
       rawG.append("g")
-        .attr("transform", `translate(0,${rawHeight})`)
+        .attr("transform", `translate(0,${innerH})`)
         .call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(Math.min(years.length, 8)));
 
       rawG.append("text")
@@ -1045,12 +1144,18 @@
         rawLines.push(path.node());
       });
 
-      // --- Trend motif (z-score IQR band + median), toggle-controlled -----
-      const motifG = svg.append("g")
-        .attr("class", "evolens-motif-group")
-        .attr("transform", `translate(${margin.left},${margin.top + rawHeight + margin.bottom})`);
+      // --- Trend motif chart (right, z-score IQR band + median) -----------
+      const motifSvg = d3.select(chartRowEl)
+        .append("svg")
+        .attr("class", "evolens-chart")
+        .attr("width", CHART_W)
+        .attr("height", CHART_H);
 
-      if (focusBand) drawFocusBand(motifG, x, motifHeight, focusBand, years);
+      const motifG = motifSvg.append("g")
+        .attr("class", "evolens-motif-group")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      if (focusBand) drawFocusBand(motifG, x, innerH, focusBand, years);
 
       let motifZVals = [];
       for (const m of motif) {
@@ -1058,11 +1163,11 @@
         if (m.p75 !== null) motifZVals.push(m.p75);
       }
       const yMotifDomain = motifZVals.length ? [d3.min(motifZVals) - 0.5, d3.max(motifZVals) + 0.5] : [-1, 1];
-      const yMotif = d3.scaleLinear().domain(yMotifDomain).range([motifHeight, 0]).nice();
+      const yMotif = d3.scaleLinear().domain(yMotifDomain).range([innerH, 0]).nice();
 
       motifG.append("g").call(d3.axisLeft(yMotif).ticks(4));
       motifG.append("g")
-        .attr("transform", `translate(0,${motifHeight})`)
+        .attr("transform", `translate(0,${innerH})`)
         .call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(Math.min(years.length, 8)));
 
       motifG.append("text")
@@ -1099,13 +1204,6 @@
         .attr("stroke-width", 2)
         .attr("d", medianLineGen);
 
-      applyMotifVisibility();
-
-      // Move the line/motif SVG above the heatmap cards + heading. d3 appended
-      // it last (cards were built first); reposition it to the top of the panel
-      // body so the charts read above the cards, in both segment and unit mode.
-      chartWrapEl.insertBefore(svg.node(), chartWrapEl.firstChild);
-
       // Handle returned so the coherence preview can live-refine the chart:
       // hide below-threshold raw lines (rawLines) and recompute the motif band +
       // median from the surviving series, reusing these generators/scales. The
@@ -1113,13 +1211,5 @@
       // the band does not jump scale while dragging.
       return { rawLines, bandPath, medianPath, areaGen, medianLineGen, years };
     }
-
-    function applyMotifVisibility() {
-      const show = motifToggle.checked;
-      chartWrapEl.querySelectorAll(".evolens-motif-group").forEach((g) => {
-        g.style.display = show ? "" : "none";
-      });
-    }
-    motifToggle.addEventListener("change", applyMotifVisibility);
   }
 })();
